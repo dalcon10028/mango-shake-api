@@ -1,0 +1,6 @@
+finance:
+  upbit:
+    rest:
+      url: https://api.upbit.com/v1
+      access-key: ${UPBIT_API_KEY}
+      secret-key: ${UPBIT_SECRET_KEY}
