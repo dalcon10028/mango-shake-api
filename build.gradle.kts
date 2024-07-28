@@ -26,12 +26,21 @@ buildscript {
 }
 
 dependencies {
+    // http
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
     // serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
     // auth
     implementation("com.auth0:java-jwt:4.4.0")
+
+    // db
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
+
+    // logging
+    implementation("io.github.oshai:kotlin-logging-jvm:5.1.4")
 
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -46,6 +55,7 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-property:$kotestVersion")
     testImplementation("io.kotest.extensions:kotest-extensions-spring:1.3.0")
+    testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
