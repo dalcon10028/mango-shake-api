@@ -1,5 +1,5 @@
 create table if not exists day_ohlcv (
-    id serial primary key,
+    id bigint primary key,
     base_date date not null,
     open decimal(32, 8) not null,
     high decimal(32, 8) not null,
