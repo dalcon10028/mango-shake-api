@@ -19,6 +19,8 @@ repositories {
 }
 
 dependencies {
+	implementation(project(":shared"))
+
 	implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
 	implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
