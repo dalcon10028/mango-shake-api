@@ -1,3 +1,3 @@
 rootProject.name = "mango_shake"
 
-include("domain", "shared")
+include("domain", "shared", "market_broker")

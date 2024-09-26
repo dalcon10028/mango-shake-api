@@ -33,7 +33,6 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("io.projectreactor:reactor-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-	testImplementation("io.kotest.extensions:kotest-extensions-spring:1.3.0")
 	testRuntimeOnly("com.h2database:h2")
 	testRuntimeOnly("io.r2dbc:r2dbc-h2")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
