@@ -1,0 +1,75 @@
+name: ci
+on:
+  release:
+    types: [created]
+
+env:
+    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    AWS_DEFAULT_REGION: ap-northeast-2
+    AWS_EC2_SCRIPT: ./deploy.sh
+    SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+jobs:
+  bulid-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '21'
+          cache: gradle
+
+      - name: Build with Gradle
+        run: ./gradlew app:build
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/dalcon10028/mango-shake:latest
+            ghcr.io/dalcon10028/mango-shake:${{ github.ref_name }}
+
+#      - name: Deploy to EC2
+#        uses: appleboy/ssh-action@v1.0.1
+#        with:
+#          host: ${{ secrets.RELEASE_SERVICE_API_HOST }}
+#          username: ${{ secrets.RELEASE_SERVICE_API_USERNAME }}
+#          key: ${{ secrets.RELEASE_SERVICE_API_KEY }}
+#          port: 22
+#          script: $AWS_EC2_SCRIPT
+
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v1.24.0
+        env:
+          SLACK_WEBHOOK_URL: $SLACK_WEBHOOK_URL
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        with:
+          payload: |
+            {
+                "text": "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}",
+                "blocks": [
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+                    }
+                  }
+                ]
+            }
+        if: always()
