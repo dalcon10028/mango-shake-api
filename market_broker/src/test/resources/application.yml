@@ -2,3 +2,12 @@ upbit:
   url: http://localhost:9000/v1
   access-key: 00000000000000000000000000000000000000000
   secret-key: 00000000000000000000000000000000000000000
+
+#upbit:
+#  url: "https://api.upbit.com/v1"
+#  access-key: "wUPsQUXPe96OiWniuzqwaVY3qxY4fo0a11gKeDUU"
+#  secret-key: "VUzxetAHhxsOF1KUHq1Al0GJjCZqINw9CgytiN5F"
+
+logging:
+  level:
+    root: debug
