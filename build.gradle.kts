@@ -32,6 +32,7 @@ subprojects {
 
         implementation("org.jetbrains.kotlin:kotlin-reflect")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")
+        implementation("io.github.oshai:kotlin-logging-jvm:5.1.4")
         testRuntimeOnly("org.junit.platform:junit-platform-launcher")
         implementation("org.springframework.boot:spring-boot-starter")
         testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
