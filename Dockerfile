@@ -2,7 +2,7 @@ FROM amazoncorretto:21-alpine
 
 WORKDIR /app
 
-COPY build/libs/*.jar app.jar
+COPY app/build/libs/*.jar app.jar
 
 ARG PORT=8080
 ENV PORT ${PORT}
