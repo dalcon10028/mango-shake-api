@@ -6,7 +6,16 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.wiremock.ListenerMode
 import io.kotest.extensions.wiremock.WireMockListener
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonNamingStrategy
 import org.springframework.boot.test.context.SpringBootTest
+import why_mango.upbit.dto.OrderRequestBody
+import why_mango.upbit.enums.OrderType
+import why_mango.upbit.enums.Side
+import java.math.BigDecimal
+import java.util.UUID
 
 @SpringBootTest
 class UpbitRestTest(
@@ -33,5 +42,75 @@ class UpbitRestTest(
         apiKeys.size shouldBe 1
         apiKeys[0].accessKey shouldBe accessKey
         apiKeys[0].expireAt shouldBe expireAt
+    }
+
+    test("getAccounts") {
+        val currency = "BTC"
+        val balance = BigDecimal("0.00320325")
+        val locked = BigDecimal("0")
+        val avgBuyPrice = BigDecimal("86090384.84039647")
+        val avgBuyPriceModified = false
+        val unitCurrency = "KRW"
+
+        mockserver.stubFor(
+            get(urlPathMatching("/v1/accounts"))
+                .willReturn(
+                    aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                            [
+                                {
+                                    "currency": "$currency",
+                                    "balance": "$balance",
+                                    "locked": "$locked",
+                                    "avg_buy_price": "$avgBuyPrice",
+                                    "avg_buy_price_modified": $avgBuyPriceModified,
+                                    "unit_currency": "$unitCurrency"
+                                }
+                            ]
+                        """.trimIndent())
+                )
+        )
+
+        val accounts = upbitRest.getAccounts()
+
+        accounts.size shouldBe 1
+        accounts[0].currency shouldBe currency
+        accounts[0].balance shouldBe balance
+        accounts[0].locked shouldBe locked
+        accounts[0].avgBuyPrice shouldBe avgBuyPrice
+        accounts[0].avgBuyPriceModified shouldBe avgBuyPriceModified
+        accounts[0].unitCurrency shouldBe unitCurrency
+    }
+
+    test("order") {
+        val body = OrderRequestBody(
+            market = "KRW-BTC",
+            side = Side.ASK,
+            volume = BigDecimal("0.00032032"),
+            price = BigDecimal("88271000"),
+            ordType = OrderType.LIMIT,
+            identifier = UUID.randomUUID().toString()
+        )
+
+        upbitRest.order(body)
+    }
+
+    test("serialize") {
+        val body = OrderRequestBody(
+            market = "KRW-BTC",
+            side = Side.ASK,
+            volume = BigDecimal("0.00032032"),
+            price = BigDecimal("88271000"),
+            ordType = OrderType.LIMIT,
+            identifier = UUID.randomUUID().toString()
+        )
+        @OptIn(ExperimentalSerializationApi::class)
+        val format = Json {
+            namingStrategy = JsonNamingStrategy.SnakeCase
+            decodeEnumsCaseInsensitive = true
+            explicitNulls = false
+        }
+        println(format.encodeToString(body))
     }
 })

@@ -1,4 +1,4 @@
-package why_mango.app
+package why_mango
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

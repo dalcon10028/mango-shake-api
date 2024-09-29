@@ -1,5 +1,5 @@
 create table if not exists ohlcv_day (
-    id bigint primary key auto_increment,
+    id serial primary key,
     base_date date not null,
     exchange varchar(10) not null,
     symbol varchar(30) not null,
