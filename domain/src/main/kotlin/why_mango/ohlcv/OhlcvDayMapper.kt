@@ -8,6 +8,7 @@ class OhlcvDayMapper {
             return OhlcvDay(
                 baseDate = ohlcvDayCreate.baseDate,
                 exchange = ohlcvDayCreate.exchange,
+                currency = ohlcvDayCreate.currency,
                 symbol = ohlcvDayCreate.symbol,
                 open = ohlcvDayCreate.open,
                 high = ohlcvDayCreate.high,
@@ -24,6 +25,7 @@ class OhlcvDayMapper {
                 id = ohlcvDay.id!!,
                 baseDate = ohlcvDay.baseDate,
                 exchange = ohlcvDay.exchange,
+                currency = ohlcvDay.currency,
                 symbol = ohlcvDay.symbol,
                 open = ohlcvDay.open,
                 high = ohlcvDay.high,

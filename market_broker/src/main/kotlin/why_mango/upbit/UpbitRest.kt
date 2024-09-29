@@ -1,6 +1,7 @@
 package why_mango.upbit
 
 import feign.*
+import kotlinx.coroutines.flow.Flow
 import why_mango.upbit.dto.*
 
 interface UpbitRest {
@@ -45,4 +46,10 @@ interface UpbitRest {
      */
     @RequestLine("DELETE /order")
     suspend fun cancelOrder(@QueryMap query: OrderCancelQuary): OrderCancelResponse
+
+    /**
+     * 일(Day) 캔들
+     */
+    @RequestLine("GET /candles/days")
+    suspend fun getCandleDay(@QueryMap query: CandleDayQuary): List<CandleDayResponse>
 }

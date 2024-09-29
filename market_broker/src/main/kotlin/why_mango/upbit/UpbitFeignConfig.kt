@@ -6,6 +6,7 @@ import feign.*
 import feign.codec.*
 import feign.kotlin.CoroutineFeign
 import feign.slf4j.Slf4jLogger
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

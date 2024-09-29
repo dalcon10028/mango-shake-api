@@ -10,9 +10,13 @@ class OhlcvDayService(
     private val ohlcvDayRepository: OhlcvDayRepository,
 ) {
     suspend fun createOhlcvDay(ohlcvDayCreate: OhlcvDayCreate): OhlcvDayModel =
-        OhlcvDayMapper.toEntity(ohlcvDayCreate)
-            .let { ohlcvDayRepository.save(it) }
-            .let { OhlcvDayMapper.toModel(it) }
+        ohlcvDayRepository.findByBaseDateAndSymbolAndCurrency(
+            baseDate = ohlcvDayCreate.baseDate,
+            symbol = ohlcvDayCreate.symbol,
+            currency = ohlcvDayCreate.currency
+        )?.let(OhlcvDayMapper::toModel)
+            ?: ohlcvDayRepository.save(OhlcvDayMapper.toEntity(ohlcvDayCreate))
+                .let(OhlcvDayMapper::toModel)
 
-    suspend fun findAll(): Flow<OhlcvDay> = ohlcvDayRepository.findAll()
-}
+        suspend fun findAll(): Flow<OhlcvDay> = ohlcvDayRepository.findAll()
+    }

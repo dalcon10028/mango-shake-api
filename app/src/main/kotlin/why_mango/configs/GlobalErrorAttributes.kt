@@ -12,7 +12,7 @@ import why_mango.exception.MangoShakeException
 @Component
 class GlobalErrorAttributes: DefaultErrorAttributes() {
     override fun getErrorAttributes(request: ServerRequest, options: ErrorAttributeOptions): MutableMap<String, out Any?> {
-//        val errorAttributes = super.getErrorAttributes(request, options)
+        val errorAttributes = super.getErrorAttributes(request, options)
         val error: Throwable = super.getError(request)
 
         return when (error) {
@@ -24,9 +24,9 @@ class GlobalErrorAttributes: DefaultErrorAttributes() {
                 "data" to error.data,
             )
             else -> mutableMapOf(
-                "message" to error.message,
+                "message" to error.localizedMessage,
                 "errorCode" to ErrorCode.UNKNOWN,
-                "status" to HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "status" to errorAttributes["status"] as Int,
                 "details" to null,
                 "data" to null,
             )

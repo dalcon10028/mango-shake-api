@@ -4,6 +4,7 @@ import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
+import why_mango.enums.Currency
 import why_mango.enums.Exchange
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -19,6 +20,9 @@ class OhlcvDay(
 
     @Column("exchange")
     val exchange: Exchange,
+
+    @Column("currency")
+    val currency: Currency,
 
     @Column("symbol")
     val symbol: String,

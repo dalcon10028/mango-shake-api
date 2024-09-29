@@ -1,12 +1,10 @@
 package why_mango.upbit.dto
 
-import feign.Param
 import kotlinx.serialization.Serializable
 import why_mango.serializer.BigDecimalSerializer
 import why_mango.serializer.DateTimeSerializer
 import why_mango.upbit.enums.OrderType
 import why_mango.upbit.enums.Side
-import why_mango.upbit.enums.TimeInForce
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
