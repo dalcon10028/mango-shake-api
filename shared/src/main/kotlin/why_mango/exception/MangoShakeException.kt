@@ -3,9 +3,9 @@ package why_mango.exception
 import org.springframework.http.HttpStatus
 
 class MangoShakeException(
+    val errorCode: ErrorCode,
     message: String,
-    val errorCode: String,
-    val status: HttpStatus = HttpStatus.INTERNAL_SERVER_ERROR,
+    val status: HttpStatus = errorCode.status,
     val details: String? = null,
     val data: Any? = null,
 ): RuntimeException(message) {
