@@ -2,7 +2,7 @@ package why_mango.jobs.dto
 
 import java.time.LocalDate
 
-data class OhlcvDayJobRequest(
+data class OhlcvDayJobDtos(
     val symbol: String,
     val startDate: LocalDate,
     val endDate: LocalDate,
