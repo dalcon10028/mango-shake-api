@@ -3,6 +3,7 @@ package why_mango.ohlcv
 import io.kotest.core.spec.style.FunSpec
 import org.junit.jupiter.api.Assertions.*
 import org.springframework.boot.test.context.SpringBootTest
+import why_mango.enums.Currency
 import why_mango.enums.Exchange
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -16,6 +17,7 @@ class OhlcvDayServiceTest(
             symbol = "SOL/KRW",
             exchange = Exchange.UPBIT,
             baseDate = LocalDate.now(),
+            currency = Currency.KRW,
             open = BigDecimal(100.0),
             high = BigDecimal(200.0),
             low = BigDecimal(50.0),

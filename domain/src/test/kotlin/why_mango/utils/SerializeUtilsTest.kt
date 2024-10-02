@@ -1,0 +1,3 @@
+package why_mango.utils
+
+class SerializeUtilsTest

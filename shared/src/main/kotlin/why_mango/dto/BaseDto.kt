@@ -5,4 +5,4 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @Polymorphic
-open class FeignBaseBody
+open class BaseDto

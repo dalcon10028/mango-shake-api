@@ -1,7 +1,6 @@
 package why_mango.upbit
 
 import feign.*
-import kotlinx.coroutines.flow.Flow
 import why_mango.upbit.dto.*
 
 interface UpbitRest {
@@ -39,7 +38,7 @@ interface UpbitRest {
      * 주문하기
      */
     @RequestLine("POST /orders")
-    suspend fun order(body: OrderRequestBody): OrderRequestResponse
+    suspend fun order(body: OrderRequestDto): OrderRequestResponse
 
     /**
      * 주문 취소 접수

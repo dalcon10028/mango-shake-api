@@ -4,16 +4,20 @@ import io.r2dbc.postgresql.PostgresqlConnectionConfiguration
 import io.r2dbc.postgresql.PostgresqlConnectionFactory
 import io.r2dbc.spi.ConnectionFactory
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.r2dbc.config.AbstractR2dbcConfiguration
 import org.springframework.data.r2dbc.config.EnableR2dbcAuditing
+import org.springframework.data.r2dbc.convert.R2dbcCustomConversions
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories
+import why_mango.wallet.entity.AdditionalInfoReadingConverter
+import why_mango.wallet.entity.AdditionalInfoWritingConverter
 
 @Configuration
 @EnableR2dbcAuditing
 @EnableR2dbcRepositories(basePackages = ["why_mango"])
 class R2dbcConfig(
-    private val r2dbcProperties: R2dbcProperties
+    private val r2dbcProperties: R2dbcProperties,
 ) : AbstractR2dbcConfiguration() {
     override fun connectionFactory(): ConnectionFactory =
         PostgresqlConnectionFactory(
@@ -25,6 +29,16 @@ class R2dbcConfig(
                 .password(r2dbcProperties.password)
                 .build()
         )
+
+    @Bean
+    override fun r2dbcCustomConversions(): R2dbcCustomConversions {
+        return R2dbcCustomConversions(
+            storeConversions,
+            listOf(
+                AdditionalInfoReadingConverter,
+                AdditionalInfoWritingConverter
+            ))
+    }
 
     @ConfigurationProperties(prefix = "spring.r2dbc")
     data class R2dbcProperties(

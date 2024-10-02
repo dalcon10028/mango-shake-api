@@ -11,7 +11,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNamingStrategy
 import org.springframework.boot.test.context.SpringBootTest
-import why_mango.upbit.dto.OrderRequestBody
+import why_mango.upbit.dto.OrderRequestDto
 import why_mango.upbit.enums.OrderType
 import why_mango.upbit.enums.Side
 import java.math.BigDecimal
@@ -84,7 +84,7 @@ class UpbitRestTest(
     }
 
     test("order") {
-        val body = OrderRequestBody(
+        val body = OrderRequestDto(
             market = "KRW-BTC",
             side = Side.ASK,
             volume = BigDecimal("0.00032032"),
@@ -97,7 +97,7 @@ class UpbitRestTest(
     }
 
     test("serialize") {
-        val body = OrderRequestBody(
+        val body = OrderRequestDto(
             market = "KRW-BTC",
             side = Side.ASK,
             volume = BigDecimal("0.00032032"),

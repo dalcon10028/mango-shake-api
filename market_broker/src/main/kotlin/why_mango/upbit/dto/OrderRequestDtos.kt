@@ -1,7 +1,7 @@
 package why_mango.upbit.dto
 
 import kotlinx.serialization.Serializable
-import why_mango.dto.FeignBaseBody
+import why_mango.dto.BaseDto
 import why_mango.serializer.BigDecimalSerializer
 import why_mango.serializer.DateTimeSerializer
 import why_mango.upbit.enums.*
@@ -33,7 +33,7 @@ import java.time.LocalDateTime
  */
 
 @Serializable
-data class OrderRequestBody(
+data class OrderRequestDto(
     /* 마켓 ID */
     val market: String,
 
@@ -56,7 +56,7 @@ data class OrderRequestBody(
 
     /* IOC, FOK 주문 설정 */
     val timeInForce: TimeInForce? = null,
-): FeignBaseBody() {
+): BaseDto() {
     init {
         require(ordType != OrderType.BEST || timeInForce != null) { "ordType이 best 일때 timeInForce는 필수입니다." }
     }

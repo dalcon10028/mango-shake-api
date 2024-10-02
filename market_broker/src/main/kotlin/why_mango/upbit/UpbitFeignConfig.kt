@@ -6,7 +6,6 @@ import feign.*
 import feign.codec.*
 import feign.kotlin.CoroutineFeign
 import feign.slf4j.Slf4jLogger
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -15,7 +14,7 @@ import kotlinx.serialization.serializer
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import why_mango.dto.FeignBaseBody
+import why_mango.dto.BaseDto
 import why_mango.exception.ErrorCode
 import why_mango.exception.MangoShakeException
 import why_mango.upbit.dto.UpbitErrorResponse
@@ -70,7 +69,7 @@ class UpbitFeignConfig(
             decodeEnumsCaseInsensitive = true
             explicitNulls = false
         }
-        if (o is FeignBaseBody) {
+        if (o is BaseDto) {
             t.body(format.encodeToString(o))
         } else {
             throw MangoShakeException(ErrorCode.UPBIT_ERROR, "FeignBaseBody를 상속받은 클래스만 사용 가능합니다.")

@@ -24,3 +24,14 @@ insert into ticker_symbol (symbol, name, api_provider) values ('SOL', 'Solana', 
 insert into ticker_symbol (symbol, name, api_provider) values ('BTC', 'Bitcoin', 'UPBIT');
 insert into ticker_symbol (symbol, name, api_provider) values ('ETH', 'Ethereum', 'UPBIT');
 insert into ticker_symbol (symbol, name, api_provider) values ('USDT', 'Tether USDt', 'UPBIT');
+
+create table if not exists wallet (
+    id serial primary key,
+    api_provider varchar(30) not null,
+    app_key varchar(255) not null,
+    app_secret varchar(255) not null,
+    additional_info jsonb not null,
+    created_at timestamp not null default current_timestamp
+);
+
+insert into wallet (api_provider, app_key, app_secret, additional_info) values ('UPBIT', 'app_key', 'api_secret', '{}');
