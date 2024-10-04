@@ -1,6 +1,6 @@
 spring:
   r2dbc:
-    url: r2dbc:h2:mem:///testdb;DB_CLOSE_DELAY=-1;MODE=MySQL;DATABASE_TO_UPPER=false
+    url: r2dbc:h2:mem:///testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false
     username: sa
     password:
     host: localhost
@@ -11,7 +11,7 @@ spring:
     baseline-on-migrate: true
     baseline-version: 20240924021710
     locations: classpath:db/migration
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MySQL;DATABASE_TO_UPPER=false
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false
     user: sa
     password:
 

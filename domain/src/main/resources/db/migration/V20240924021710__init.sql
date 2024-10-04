@@ -13,7 +13,7 @@ create table if not exists ohlcv_day (
 );
 
 create table if not exists ticker_symbol (
-    id bigint primary key auto_increment,
+    id serial primary key,
     symbol varchar(30) not null,
     name varchar(30) not null,
     api_provider varchar(30) not null,

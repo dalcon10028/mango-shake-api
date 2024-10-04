@@ -13,6 +13,7 @@ import java.time.LocalDateTime
 @Table("ohlcv_day")
 class OhlcvDay(
     @Id
+    @Column("id")
     val id: Long? = null,
 
     @Column("base_date")
