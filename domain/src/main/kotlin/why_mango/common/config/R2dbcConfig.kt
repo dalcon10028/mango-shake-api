@@ -1,4 +1,4 @@
-package why_mango.config
+package why_mango.common.config
 
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration
 import io.r2dbc.postgresql.PostgresqlConnectionFactory
@@ -10,8 +10,8 @@ import org.springframework.data.r2dbc.config.AbstractR2dbcConfiguration
 import org.springframework.data.r2dbc.config.EnableR2dbcAuditing
 import org.springframework.data.r2dbc.convert.R2dbcCustomConversions
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories
-import why_mango.wallet.entity.AdditionalInfoReadingConverter
 import why_mango.wallet.entity.AdditionalInfoWritingConverter
+import why_mango.wallet.entity.AdditionalInfoReadingConverter
 
 @Configuration
 @EnableR2dbcAuditing
@@ -35,8 +35,8 @@ class R2dbcConfig(
         return R2dbcCustomConversions(
             storeConversions,
             listOf(
+                AdditionalInfoWritingConverter,
                 AdditionalInfoReadingConverter,
-                AdditionalInfoWritingConverter
             ))
     }
 

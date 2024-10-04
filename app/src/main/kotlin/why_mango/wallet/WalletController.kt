@@ -14,7 +14,9 @@ class WalletController(
 
 
     @PostMapping
-    suspend fun createWallet(): Wallet {
-        return walletService.createWallet()
+    suspend fun createWallet(
+        @RequestBody walletCreate: WalletCreate
+    ): Wallet {
+        return walletService.createWallet(walletCreate)
     }
 }
