@@ -28,10 +28,23 @@ insert into ticker_symbol (symbol, name, api_provider) values ('USDT', 'Tether U
 create table if not exists wallet (
     id serial primary key,
     api_provider varchar(30) not null,
+    status varchar(30) not null default 'ACTIVE',
     app_key varchar(255) not null,
     app_secret varchar(255) not null,
     additional_info jsonb not null,
+    memo text,
     created_at timestamp not null default current_timestamp
 );
 
 insert into wallet (api_provider, app_key, app_secret, additional_info) values ('UPBIT', 'app_key', 'api_secret', '{}');
+
+create table if not exists wallet_security (
+    id serial primary key,
+    wallet_id int not null,
+    currency varchar(10) not null,
+    symbol varchar(30) not null,
+    balance decimal(32, 8) not null,
+    locked decimal(32, 8) not null,
+    average_buy_price decimal(32, 8) not null,
+    created_at timestamp not null default current_timestamp
+);

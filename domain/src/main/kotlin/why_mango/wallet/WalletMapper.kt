@@ -1,30 +1,44 @@
 package why_mango.wallet
 
-
-import kotlinx.serialization.encodeToString
-
 import why_mango.wallet.entity.Wallet
+import why_mango.wallet.entity.WalletSecurity
 
-class WalletMapper {
-    companion object {
-        fun toEntity(walletCreate: WalletCreate): Wallet {
-            return Wallet(
-                apiProvider = walletCreate.apiProvider,
-                appKey = walletCreate.appKey,
-                appSecret = walletCreate.appSecret,
-                additionalInfo = walletCreate.additionalInfo
-            )
-        }
 
-        fun toModel(wallet: Wallet): WalletModel {
-            return WalletModel(
-                id = wallet.id!!,
-                apiProvider = wallet.apiProvider,
-                appKey = wallet.appKey,
-                appSecret = wallet.appSecret,
-                additionalInfo = wallet.additionalInfo,
-                createdAt = wallet.createdAt!!
-            )
-        }
-    }
+
+fun WalletCreate.toEntity(): Wallet {
+    return Wallet(
+        apiProvider = this.apiProvider,
+        appKey = this.appKey,
+        appSecret = this.appSecret,
+        additionalInfo = this.additionalInfo
+    )
+}
+
+fun WalletSecurity.toModel(): WalletSecurityModel {
+    assert(this.id != null)
+    assert(this.createdAt != null)
+    return WalletSecurityModel(
+        id = this.id!!,
+        walletId = this.walletId,
+        symbol = this.symbol,
+        currency = this.currency,
+        balance = this.balance,
+        locked = this.locked,
+        averageBuyPrice = this.averageBuyPrice,
+        createdAt = this.createdAt!!
+    )
+}
+
+fun Wallet.toModel(securities: Map<String, WalletSecurityModel>): WalletModel {
+    return WalletModel(
+        id = this.id!!,
+        apiProvider = this.apiProvider,
+        status = this.status,
+        appKey = this.appKey,
+        appSecret = this.appSecret,
+        additionalInfo = this.additionalInfo,
+        securities = securities,
+        memo = this.memo,
+        createdAt = this.createdAt!!
+    )
 }

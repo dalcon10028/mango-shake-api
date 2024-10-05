@@ -1,6 +1,7 @@
 package why_mango.upbit.dto
 
 import kotlinx.serialization.Serializable
+import why_mango.enums.Currency
 import why_mango.serializer.BigDecimalSerializer
 import java.math.BigDecimal
 
@@ -27,5 +28,5 @@ data class AccountResponse(
     val avgBuyPriceModified: Boolean,
 
     /* 평단가 기준 화폐 */
-    val unitCurrency: String
+    val unitCurrency: Currency
 )

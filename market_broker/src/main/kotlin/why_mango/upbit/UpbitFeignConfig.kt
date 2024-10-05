@@ -28,6 +28,7 @@ class UpbitFeignConfig(
 ) {
     private val errorMap = mapOf(
         "no_authorization_token" to ErrorCode.OPEN_API_AUTH_ERROR,
+        "invalid_access_key" to ErrorCode.INVALID_ACCESS_KEY,
     )
 
     @Bean
@@ -37,7 +38,7 @@ class UpbitFeignConfig(
         .logger(Slf4jLogger())
         .errorDecoder(errorDecoder())
         .logLevel(Logger.Level.FULL)
-        .requestInterceptor(RequestInterceptor())
+//        .requestInterceptor(RequestInterceptor())
         .target(UpbitRest::class.java, properties.url)
 
     private fun RequestInterceptor(): RequestInterceptor = RequestInterceptor {
@@ -72,7 +73,7 @@ class UpbitFeignConfig(
         if (o is BaseDto) {
             t.body(format.encodeToString(o))
         } else {
-            throw MangoShakeException(ErrorCode.UPBIT_ERROR, "FeignBaseBody를 상속받은 클래스만 사용 가능합니다.")
+            throw MangoShakeException(ErrorCode.UPBIT_ERROR, "BaseDto를 상속받은 클래스만 사용 가능합니다.")
         }
     }
 
@@ -84,13 +85,14 @@ class UpbitFeignConfig(
             val format = Json {
                 namingStrategy = JsonNamingStrategy.SnakeCase
                 isLenient = true
+                explicitNulls = false
             }
-            format.decodeFromString(UpbitErrorResponse.serializer(), response)
+            format.decodeFromString<UpbitErrorResponse>(response)
         } catch (e: Exception) {
             throw MangoShakeException(ErrorCode.UPBIT_ERROR, response)
         }
 
-        throw MangoShakeException(errorMap[upbitError.name] ?: ErrorCode.UPBIT_ERROR, "[${upbitError.name}] ${upbitError.message}")
+        throw MangoShakeException(errorMap[upbitError.name] ?: ErrorCode.UPBIT_ERROR, "[${upbitError.name}] ${upbitError.message ?: ""}")
     }
 
     @ConfigurationProperties(prefix = "upbit")

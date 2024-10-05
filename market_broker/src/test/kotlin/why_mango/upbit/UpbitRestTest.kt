@@ -72,7 +72,7 @@ class UpbitRestTest(
                 )
         )
 
-        val accounts = upbitRest.getAccounts()
+        val accounts = upbitRest.getAccounts("Bearer test_token")
 
         accounts.size shouldBe 1
         accounts[0].currency shouldBe currency

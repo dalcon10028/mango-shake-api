@@ -20,11 +20,13 @@ repositories {
 
 dependencies {
 	implementation(project(":shared"))
+	implementation(project(":market_broker"))
 
 	implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
 	implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+	implementation("com.auth0:java-jwt:4.4.0")
 	implementation("org.flywaydb:flyway-core")
 	implementation("org.flywaydb:flyway-database-postgresql")
 	implementation("org.postgresql:postgresql")

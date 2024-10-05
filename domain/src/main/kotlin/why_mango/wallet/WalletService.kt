@@ -1,16 +1,36 @@
 package why_mango.wallet
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Service
-import why_mango.wallet.entity.Wallet
+import org.springframework.transaction.annotation.Transactional
+import why_mango.enums.ApiProvider
+import why_mango.exception.ErrorCode
+import why_mango.exception.MangoShakeException
 import why_mango.wallet.repository.WalletRepository
-
+import why_mango.wallet.repository.WalletSecurityRepository
 
 @Service
-class WalletService(
-    private val walletRepository: WalletRepository
+abstract class WalletService(
+    private val walletRepository: WalletRepository,
+    private val walletSecurityRepository: WalletSecurityRepository,
 ) {
-    suspend fun getWallets(): Flow<Wallet> = walletRepository.findAll()
+    abstract val apiProvider: ApiProvider
 
-    suspend fun createWallet(create: WalletCreate) = walletRepository.save(WalletMapper.toEntity(create))
+    @Transactional(readOnly = true)
+    suspend fun getWallets(): Flow<WalletModel> =
+        walletRepository.findAll().map { wallet ->
+            val securities = walletSecurityRepository.findByWalletId(wallet.id!!)
+            wallet.toModel(securities.map { it.toModel() }.toList().associateBy { it.symbol })
+        }
+
+    @Transactional(readOnly = true)
+    suspend fun getWallet(walletId: Long): WalletModel {
+        val wallet = walletRepository.findById(walletId) ?: throw MangoShakeException(ErrorCode.RESOURCE_NOT_FOUND, "Wallet not found")
+        val securities = walletSecurityRepository.findByWalletId(walletId)
+        return wallet.toModel(securities.map { it.toModel() }.toList().associateBy { it.symbol })
+    }
+
+    abstract suspend fun createWallet(create: WalletCreate): WalletModel
 }

@@ -1,8 +1,10 @@
 package why_mango.upbit
 
 import feign.*
+import org.springframework.web.bind.annotation.RequestHeader
 import why_mango.upbit.dto.*
 
+@Headers("Authorization: {token}")
 interface UpbitRest {
     /**
      * API 키 리스트 조회
@@ -14,7 +16,7 @@ interface UpbitRest {
      * 전체 계좌 조회
      */
     @RequestLine("GET /accounts")
-    suspend fun getAccounts(): List<AccountResponse>
+    suspend fun getAccounts(@Param token: String): List<AccountResponse>
 
     /**
      * id로 주문리스트 조회

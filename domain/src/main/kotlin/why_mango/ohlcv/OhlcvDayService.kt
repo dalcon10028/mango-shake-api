@@ -19,4 +19,4 @@ class OhlcvDayService(
                 .let(OhlcvDayMapper::toModel)
 
         suspend fun findAll(): Flow<OhlcvDay> = ohlcvDayRepository.findAll()
-    }
+}

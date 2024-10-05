@@ -9,6 +9,6 @@ data class UpbitErrorResponse(
 
 @Serializable
 data class UpbitError(
-    val message: String, // 오류에 대한 설명
+    val message: String?, // 오류에 대한 설명
     val name: String // 오류 코드
 )
