@@ -1,4 +1,0 @@
-upbit:
-  url: https://api.upbit.com/v1
-  access-key: ${UPBIT_ACCESS_KEY}
-  secret-key: ${UPBIT_SECRET_KEY}

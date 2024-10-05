@@ -1,6 +1,6 @@
 spring:
   profiles:
-    include: domain, market-broker
+    include: domain, market-broker, finance
 
 logging:
   level:

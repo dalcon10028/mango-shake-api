@@ -52,5 +52,5 @@ interface UpbitRest {
      * 일(Day) 캔들
      */
     @RequestLine("GET /candles/days")
-    suspend fun getCandleDay(@QueryMap query: CandleDayQuary): List<CandleDayResponse>
+    suspend fun getCandleDay(@Param token: String, @QueryMap query: CandleDayQuary): List<CandleDayResponse>
 }

@@ -1,7 +1,5 @@
 package why_mango.upbit
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
 import feign.*
 import feign.codec.*
 import feign.kotlin.CoroutineFeign
@@ -11,7 +9,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNamingStrategy
 import kotlinx.serialization.serializer
-import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import why_mango.dto.BaseDto
@@ -20,12 +17,9 @@ import why_mango.exception.MangoShakeException
 import why_mango.upbit.dto.UpbitErrorResponse
 import java.lang.reflect.Type
 import java.nio.charset.StandardCharsets
-import java.util.*
 
 @Configuration
-class UpbitFeignConfig(
-    private val properties: UpbitProperties
-) {
+class UpbitFeignConfig {
     private val errorMap = mapOf(
         "no_authorization_token" to ErrorCode.OPEN_API_AUTH_ERROR,
         "invalid_access_key" to ErrorCode.INVALID_ACCESS_KEY,
@@ -38,18 +32,7 @@ class UpbitFeignConfig(
         .logger(Slf4jLogger())
         .errorDecoder(errorDecoder())
         .logLevel(Logger.Level.FULL)
-//        .requestInterceptor(RequestInterceptor())
-        .target(UpbitRest::class.java, properties.url)
-
-    private fun RequestInterceptor(): RequestInterceptor = RequestInterceptor {
-        val algorithm: Algorithm = Algorithm.HMAC256(properties.secretKey)
-        val jwtToken: String = JWT.create()
-            .withClaim("access_key", properties.accessKey)
-            .withClaim("nonce", UUID.randomUUID().toString())
-            .sign(algorithm)
-
-        it.header("Authorization", "Bearer $jwtToken")
-    }
+        .target(UpbitRest::class.java, "https://api.upbit.com/v1")
 
     private fun decoder(): Decoder = Decoder { r: Response, t: Type ->
         // https://github.com/Kotlin/kotlinx.serialization/blob/master/docs/serialization-guide.md
@@ -94,11 +77,4 @@ class UpbitFeignConfig(
 
         throw MangoShakeException(errorMap[upbitError.name] ?: ErrorCode.UPBIT_ERROR, "[${upbitError.name}] ${upbitError.message ?: ""}")
     }
-
-    @ConfigurationProperties(prefix = "upbit")
-    data class UpbitProperties(
-        val accessKey: String,
-        val secretKey: String,
-        val url: String
-    )
 }

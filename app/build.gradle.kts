@@ -22,6 +22,7 @@ dependencies {
 	implementation(project(":domain"))
 	implementation(project(":shared"))
 	implementation(project(":market_broker"))
+	implementation(project(":finance"))
 
 //	implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 //	implementation("org.springframework.boot:spring-boot-starter-security")

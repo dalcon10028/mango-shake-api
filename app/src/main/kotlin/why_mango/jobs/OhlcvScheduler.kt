@@ -2,20 +2,18 @@ package why_mango.jobs
 
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import why_mango.enums.Currency
-import why_mango.enums.Exchange
+import why_mango.candle.CandleServiceFactory
 import why_mango.jobs.dto.OhlcvDayJobDtos
 import why_mango.ohlcv.OhlcvDayCreate
 import why_mango.ohlcv.OhlcvDayService
-import why_mango.upbit.UpbitRest
-import why_mango.upbit.dto.CandleDayQuary
-import why_mango.utils.between
 import java.time.LocalDate
+import why_mango.enums.*
+import kotlinx.coroutines.flow.*
 
 @Component
 class OhlcvScheduler(
     private val ohlcvDayService: OhlcvDayService,
-    private val upbitRest: UpbitRest,
+    private val candleServiceFactory: CandleServiceFactory,
 ) {
 
     /**
@@ -30,23 +28,22 @@ class OhlcvScheduler(
                 endDate = LocalDate.now().minusDays(1),
             )
 
-            upbitRest.getCandleDay(CandleDayQuary(market = "${Currency.KRW}-${body.symbol}"))
-                .asSequence()
-                .filter { it.candleDateTimeKst.toLocalDate().between(body.startDate, body.endDate) }
+            candleServiceFactory.get(Market.CRYPTO_CURRENCY)
+                .getDayCandles(body.symbol, body.startDate, body.endDate)
                 .map {
                     OhlcvDayCreate(
-                        baseDate = it.candleDateTimeKst.toLocalDate(),
+                        baseDate = it.baseDate,
                         exchange = Exchange.UPBIT,
                         currency = Currency.KRW,
                         symbol = body.symbol,
-                        open = it.openingPrice,
-                        high = it.highPrice,
-                        low = it.lowPrice,
-                        close = it.tradePrice,
-                        volume = it.candleAccTradeVolume,
+                        open = it.open,
+                        high = it.high,
+                        low = it.low,
+                        close = it.close,
+                        volume = it.volume,
                     )
                 }
-                .forEach { ohlcvDayService.createOhlcvDay(it) }
+                .collect { ohlcvDayService.createOhlcvDay(it) }
         } catch (
             e: Exception
         ) {

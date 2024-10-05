@@ -18,5 +18,5 @@ class OhlcvDayService(
             ?: ohlcvDayRepository.save(OhlcvDayMapper.toEntity(ohlcvDayCreate))
                 .let(OhlcvDayMapper::toModel)
 
-        suspend fun findAll(): Flow<OhlcvDay> = ohlcvDayRepository.findAll()
+    suspend fun findAll(): Flow<OhlcvDay> = ohlcvDayRepository.findAll()
 }
