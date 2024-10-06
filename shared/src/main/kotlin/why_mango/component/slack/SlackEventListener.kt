@@ -2,6 +2,7 @@ package why_mango.component.slack
 
 import com.slack.api.Slack
 import com.slack.api.model.Attachments.attachment
+import com.slack.api.model.kotlin_extension.block.withBlocks
 import com.slack.api.webhook.Payload
 import com.slack.api.webhook.WebhookPayloads.*
 import kotlinx.coroutines.CoroutineScope
@@ -24,6 +25,26 @@ class SlackEventListener(
         val url = slackProperties.webhook[event.topic]?.url ?: throw MangoShakeException(ErrorCode.ILLIGAL_STATE, "No webhook url for ${event.topic}")
 
         val payload: Payload = payload { p -> p
+//            .blocks(
+//                withBlocks {
+//                    header {
+//                        text("Mango Shake", emoji = true)
+//                    }
+//                    section {
+//                        fields {
+//                            event.fields.forEach { field ->
+//                                markdownText("*${field.title}*: ${field.value}")
+//                            }
+//                        }
+//                    }
+//                    divider()
+//                    context {
+//                        elements {
+//                            markdownText("Triggered by ${event.topic}")
+//                        }
+//                    }
+//                }
+//            )
             .attachments(
                 listOf(attachment { a -> a
                     .pretext(event.title)
