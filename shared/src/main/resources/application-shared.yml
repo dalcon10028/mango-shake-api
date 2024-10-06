@@ -1,0 +1,6 @@
+slack:
+  webhook:
+    notification:
+      url: ${SLACK_WEBHOOK_NOTIFICATION_URL}
+    error:
+      url: ${SLACK_WEBHOOK_ERROR_URL}

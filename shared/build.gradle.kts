@@ -19,8 +19,17 @@ repositories {
 }
 
 dependencies {
+    val slackVersion by extra { "1.43.1" }
+
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+
+    // slack
+    implementation("com.slack.api:slack-api-client:$slackVersion")
+    implementation("com.slack.api:slack-api-model-kotlin-extension:$slackVersion")
+    implementation("com.slack.api:slack-api-client-kotlin-extension:$slackVersion")
+
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

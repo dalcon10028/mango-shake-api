@@ -29,13 +29,19 @@ subprojects {
     dependencies {
         val kotestVersion by extra { "5.9.0" }
         val kotlinSerializationVersion by extra { "1.7.1" }
+        val coroutinesVersion by extra { "1.9.0" }
+        val mockkVersion by extra { "1.13.12" }
 
         implementation("org.jetbrains.kotlin:kotlin-reflect")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")
         implementation("io.github.oshai:kotlin-logging-jvm:5.1.4")
         implementation("org.springframework.boot:spring-boot-starter")
         implementation("org.springframework.boot:spring-boot-starter-webflux")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:${coroutinesVersion}")
         testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+        testImplementation("io.mockk:mockk:${mockkVersion}")
+        testImplementation("com.ninja-squad:springmockk:4.0.2")
         testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
         testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
         testImplementation("io.kotest:kotest-property:$kotestVersion")
