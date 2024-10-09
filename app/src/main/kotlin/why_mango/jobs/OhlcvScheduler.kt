@@ -1,5 +1,6 @@
 package why_mango.jobs
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import why_mango.candle.CandleServiceFactory
@@ -16,6 +17,8 @@ class OhlcvScheduler(
     private val candleServiceFactory: CandleServiceFactory,
 ) {
 
+    private val logger = KotlinLogging.logger {}
+
     /**
      * 매일 오전 10시에 전날 데이터 수집
      */
@@ -27,6 +30,8 @@ class OhlcvScheduler(
                 startDate = LocalDate.now().minusDays(1),
                 endDate = LocalDate.now().minusDays(1),
             )
+
+            logger.info { "Start ohlcvDay $body" }
 
             candleServiceFactory.get(Market.CRYPTO_CURRENCY)
                 .getDayCandles(body.symbol, body.startDate, body.endDate)
@@ -43,11 +48,10 @@ class OhlcvScheduler(
                         volume = it.volume,
                     )
                 }
-                .collect { ohlcvDayService.createOhlcvDay(it) }
-        } catch (
-            e: Exception
-        ) {
-            println(e)
+                .onEach { ohlcvDayService.createOhlcvDay(it) }
+                .collect { logger.info { it } }
+        } catch (e: Exception) {
+            logger.error { e }
         }
     }
 }
