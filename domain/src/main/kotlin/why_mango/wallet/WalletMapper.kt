@@ -1,7 +1,6 @@
 package why_mango.wallet
 
-import why_mango.wallet.entity.Wallet
-import why_mango.wallet.entity.WalletSecurity
+import why_mango.wallet.entity.*
 
 fun WalletCreate.toEntity(): Wallet {
     return Wallet(
@@ -43,5 +42,17 @@ fun Wallet.toModel(securities: Map<String, WalletSecurityModel>?): WalletModel {
         memo = this.memo,
         lastSyncedAt = this.lastSyncedAt!!,
         createdAt = this.createdAt!!,
+    )
+}
+
+fun WalletSecurityModel.toSnapshot(): WalletSecuritySnapshot {
+    return WalletSecuritySnapshot(
+        walletId = this.walletId,
+        walletSecurityId = this.id,
+        currency = this.currency,
+        symbol = this.symbol,
+        balance = this.balance,
+        locked = this.locked,
+        averageBuyPrice = this.averageBuyPrice,
     )
 }

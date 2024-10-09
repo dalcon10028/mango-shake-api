@@ -49,3 +49,15 @@ create table if not exists wallet_security (
     last_synced_at timestamp null default current_timestamp,
     created_at timestamp not null default current_timestamp
 );
+
+create table if not exists wallet_security_snapshot (
+    id serial primary key,
+    wallet_id int not null,
+    wallet_security_id int not null,
+    currency varchar(10) not null,
+    symbol varchar(30) not null,
+    balance decimal(32, 8) not null,
+    locked decimal(32, 8) not null,
+    average_buy_price decimal(32, 8) not null,
+    created_at timestamp not null default current_timestamp
+);

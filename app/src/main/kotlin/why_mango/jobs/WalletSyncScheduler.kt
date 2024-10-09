@@ -2,6 +2,7 @@ package why_mango.jobs
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import why_mango.candle.CandleServiceFactory
@@ -12,10 +13,12 @@ import java.time.LocalDate
 import why_mango.enums.*
 import kotlinx.coroutines.flow.*
 import why_mango.ticker_symbol.TickerSymbolService
+import why_mango.wallet.WalletFactory
 import why_mango.wallet.WalletService
 
 @Component
 class WalletSyncScheduler(
+    private val walletFactory: WalletFactory,
     private val walletService: WalletService,
 ) {
 
@@ -30,8 +33,16 @@ class WalletSyncScheduler(
         try {
             logger.info { "Start syncWalletForCryptoCurrency" }
 
-            walletService.getWallets(ApiProvider.UPBIT)
-                .map { wallet -> walletService.syncWallet(wallet.id) }
+            walletService.getWalletsWithoutSecurities(ApiProvider.UPBIT)
+//                .chunked(20)
+                .mapNotNull { wallet ->
+                    delay(100)
+                    walletFactory.get(ApiProvider.UPBIT).syncWallet(wallet.id)
+                        .securities?.values?.toList()
+                }
+                .map { securities ->
+                    walletService.createWalletSecuritiesSnapshot(securities)
+                }
                 .collect { logger.info { "Sync wallet: $it" } }
 
         } catch (e: Exception) {

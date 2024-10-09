@@ -6,13 +6,13 @@ import org.springframework.transaction.annotation.Transactional
 import why_mango.enums.ApiProvider
 import why_mango.exception.ErrorCode
 import why_mango.exception.MangoShakeException
-import why_mango.wallet.repository.WalletRepository
-import why_mango.wallet.repository.WalletSecurityRepository
+import why_mango.wallet.repository.*
 
 @Service
 abstract class WalletService(
     private val walletRepository: WalletRepository,
     private val walletSecurityRepository: WalletSecurityRepository,
+    private val walletSecuritySnapshotRepository: WalletSecuritySnapshotRepository,
 ) {
     abstract val apiProvider: ApiProvider
 
@@ -25,11 +25,11 @@ abstract class WalletService(
 
     @Transactional(readOnly = true)
     suspend fun getWalletsWithoutSecurities(provider: ApiProvider): Flow<WalletModel> =
-        walletRepository.findByApiProvider(provider).map { wallet -> wallet.toModel(emptyMap()) }
+        walletRepository.findByApiProviderAndStatus(provider).map { wallet -> wallet.toModel(emptyMap()) }
 
     @Transactional(readOnly = true)
     suspend fun getWallets(provider: ApiProvider): Flow<WalletModel> {
-        val wallets = walletRepository.findByApiProvider(provider).toList()
+        val wallets = walletRepository.findByApiProviderAndStatus(provider).toList()
 
         val mapValues = walletSecurityRepository.findByWalletIdIn(wallets.map { it.id!! })
             .toList()
@@ -47,6 +47,9 @@ abstract class WalletService(
         val securities = walletSecurityRepository.findByWalletId(walletId)
         return wallet.toModel(securities.map { it.toModel() }.toList().associateBy { it.symbol })
     }
+
+    suspend fun createWalletSecuritiesSnapshot(walletSecurities: List<WalletSecurityModel>) =
+        walletSecuritySnapshotRepository.saveAll(walletSecurities.map { it.toSnapshot() })
 
     abstract suspend fun createWallet(create: WalletCreate): WalletModel
 

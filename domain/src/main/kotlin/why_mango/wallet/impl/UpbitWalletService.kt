@@ -4,36 +4,35 @@ import kotlinx.coroutines.flow.map
 import org.springframework.stereotype.Service
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.toList
 import org.springframework.transaction.annotation.Transactional
-import why_mango.enums.*
 import why_mango.exception.ErrorCode
 import why_mango.exception.MangoShakeException
 import why_mango.upbit.UpbitRest
 import why_mango.upbit.dto.AccountResponse
 import why_mango.wallet.WalletService
-import why_mango.wallet.repository.WalletRepository
-import why_mango.wallet.*
-import why_mango.wallet.entity.Wallet
-import why_mango.wallet.entity.WalletSecurity
-import why_mango.wallet.repository.WalletSecurityRepository
 import java.time.LocalDateTime
-import java.util.*
 import kotlin.collections.List
+
+import why_mango.enums.*
+import kotlinx.coroutines.flow.*
+import why_mango.wallet.repository.*
+import why_mango.wallet.entity.*
+import why_mango.wallet.*
+import java.util.*
 
 @Service
 class UpbitWalletService(
     private val walletRepository: WalletRepository,
     private val walletSecurityRepository: WalletSecurityRepository,
+    walletSecuritySnapshotRepository: WalletSecuritySnapshotRepository,
     private val upbitRest: UpbitRest,
-) : WalletService(walletRepository, walletSecurityRepository) {
+) : WalletService(walletRepository, walletSecurityRepository, walletSecuritySnapshotRepository) {
 
     override val apiProvider: ApiProvider = ApiProvider.UPBIT
 
     @Transactional
     override suspend fun createWallet(create: WalletCreate): WalletModel {
-        if (walletRepository.existsByApiProviderAndAppKey(create.apiProvider, create.appKey)) {
+        if (walletRepository.existsByApiProviderAndAppKeyAndStatus(create.apiProvider, create.appKey)) {
             throw MangoShakeException(ErrorCode.DUPLICATED_RESOURCE, "Wallet already exists")
         }
 
