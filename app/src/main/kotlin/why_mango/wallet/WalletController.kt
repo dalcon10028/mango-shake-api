@@ -1,11 +1,14 @@
 package why_mango.wallet
 
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.springframework.web.bind.annotation.*
 import why_mango.wallet.dto.WalletResponse
 import why_mango.wallet.dto.toResponse
 
+@Tag(name = "Wallet", description = "Wallet API")
 @RestController
 @RequestMapping("/wallets")
 class WalletController(
@@ -17,6 +20,7 @@ class WalletController(
 
     @GetMapping("/{walletId}")
     suspend fun getWallet(
+        @Parameter(description = "Wallet ID", example = "1")
         @PathVariable walletId: Long
     ): WalletResponse = walletService.getWallet(walletId).toResponse()
 

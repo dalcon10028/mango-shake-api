@@ -19,6 +19,8 @@ repositories {
 }
 
 dependencies {
+	val springDocVersion by extra { "2.6.0" }
+
 	implementation(project(":domain"))
 	implementation(project(":shared"))
 	implementation(project(":market_broker"))
@@ -32,6 +34,10 @@ dependencies {
 	implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+
+	// docs
+	implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:$springDocVersion")
+	implementation("org.springdoc:springdoc-openapi-starter-webflux-api:$springDocVersion")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("io.projectreactor:reactor-test")

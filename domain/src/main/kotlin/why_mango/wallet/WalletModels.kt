@@ -14,7 +14,12 @@ data class WalletCreate(
     val appKey: String,
     val appSecret: String,
     val additionalInfo: AdditionalInfo,
-)
+) {
+    init {
+        require(appKey.isNotBlank()) { "appKey must not be blank" }
+        require(appSecret.isNotBlank()) { "appSecret must not be blank" }
+    }
+}
 
 data class WalletModel(
     val id: Long,
@@ -35,8 +40,7 @@ data class WalletSecurityModel(
     val currency: Currency,
     val balance: BigDecimal,
     val locked: BigDecimal,
-    val averageBuyPrice: BigDecimal,
-    val createdAt: LocalDateTime,
+    val averageBuyPrice: BigDecimal
 )
 
 @Serializable

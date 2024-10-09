@@ -2,6 +2,13 @@ spring:
   profiles:
     include: shared, domain, market-broker, finance
 
+springdoc:
+  show-actuator: true
+  swagger-ui:
+    enabled: true
+  api-docs:
+    enabled: true
+
 logging:
   level:
     root: info

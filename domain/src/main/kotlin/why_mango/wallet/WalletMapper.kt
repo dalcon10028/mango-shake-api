@@ -25,7 +25,6 @@ fun WalletSecurity.toModel(): WalletSecurityModel {
         balance = this.balance,
         locked = this.locked,
         averageBuyPrice = this.averageBuyPrice,
-        createdAt = this.createdAt!!
     )
 }
 
