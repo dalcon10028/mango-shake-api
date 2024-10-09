@@ -1,12 +1,22 @@
 package why_mango.ticker_symbol
 
-import why_mango.enums.ApiProvider
+import kotlinx.serialization.Serializable
+import why_mango.enums.*
 import java.time.LocalDateTime
+
+@Serializable
+data class TickerSymbolCreate(
+    val symbol: String,
+    val baseCurrency: Currency,
+    val name: String,
+    val market: Market,
+)
 
 data class TickerSymbolModel(
     val id: Long,
     val symbol: String,
     val name: String,
-    val apiProvider: ApiProvider,
+    val baseCurrency: Currency,
+    val market: Market,
     val createdAt: LocalDateTime,
 )

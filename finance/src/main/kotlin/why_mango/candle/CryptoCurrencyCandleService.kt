@@ -24,8 +24,8 @@ class CryptoCurrencyCandleService(
 ) : CandleService {
     override val market: Market = Market.CRYPTO_CURRENCY
 
-    override suspend fun getDayCandles(symbol: String, startDate: LocalDate, endDate: LocalDate): Flow<DayCandleModel> {
-        val query = CandleDayQuary(market = "${Currency.KRW}-${symbol}")
+    override suspend fun getDayCandles(symbol: String, baseCurrency: Currency, startDate: LocalDate, endDate: LocalDate): Flow<DayCandleModel> {
+        val query = CandleDayQuary(market = "${baseCurrency}-${symbol}")
         return upbitRest.getCandleDay(generateToken(), query)
             .asFlow().map { it.toModel() }.filter { it.baseDate.between(startDate, endDate) }
     }

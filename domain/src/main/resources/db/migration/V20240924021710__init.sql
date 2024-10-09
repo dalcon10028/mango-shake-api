@@ -15,15 +15,16 @@ create table if not exists ohlcv_day (
 create table if not exists ticker_symbol (
     id serial primary key,
     symbol varchar(30) not null,
+    base_currency varchar(10) not null default 'KRW',
     name varchar(30) not null,
-    api_provider varchar(30) not null,
+    market varchar(30) not null,
     created_at timestamp not null default current_timestamp
 );
 
-insert into ticker_symbol (symbol, name, api_provider) values ('SOL', 'Solana', 'UPBIT');
-insert into ticker_symbol (symbol, name, api_provider) values ('BTC', 'Bitcoin', 'UPBIT');
-insert into ticker_symbol (symbol, name, api_provider) values ('ETH', 'Ethereum', 'UPBIT');
-insert into ticker_symbol (symbol, name, api_provider) values ('USDT', 'Tether USDt', 'UPBIT');
+insert into ticker_symbol (symbol, base_currency, name, market) values ('SOL', 'KRW', 'Solana', 'CRYPTO_CURRENCY');
+insert into ticker_symbol (symbol, base_currency, name, market) values ('BTC', 'KRW', 'Bitcoin', 'CRYPTO_CURRENCY');
+insert into ticker_symbol (symbol, base_currency, name, market) values ('ETH', 'KRW', 'Ethereum', 'CRYPTO_CURRENCY');
+insert into ticker_symbol (symbol, base_currency, name, market) values ('USDT', 'KRW', 'Tether USDt', 'CRYPTO_CURRENCY');
 
 create table if not exists wallet (
     id serial primary key,

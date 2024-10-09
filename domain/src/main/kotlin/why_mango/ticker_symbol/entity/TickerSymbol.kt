@@ -4,7 +4,7 @@ import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
-import why_mango.enums.ApiProvider
+import why_mango.enums.*
 import java.time.LocalDateTime
 
 @Table("ticker_symbol")
@@ -15,11 +15,14 @@ class TickerSymbol (
     @Column("symbol")
     val symbol: String,
 
+    @Column("base_currency")
+    val baseCurrency: Currency,
+
     @Column("name")
     val name: String,
 
-    @Column("api_provider")
-    val apiProvider: ApiProvider,
+    @Column("market")
+    val market: Market,
 
     @CreatedDate
     @Column("created_at")

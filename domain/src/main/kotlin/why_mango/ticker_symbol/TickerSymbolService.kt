@@ -9,5 +9,7 @@ import why_mango.ticker_symbol.repository.TickerSymbolRepository
 class TickerSymbolService(
     private val tickerSymbolRepository: TickerSymbolRepository
 ) {
-    suspend fun getTickerSymbols(): Flow<TickerSymbolModel> = tickerSymbolRepository.findAll().map { TickerSymbolMapper.toModel(it) }
+    suspend fun getTickerSymbols(): Flow<TickerSymbolModel> = tickerSymbolRepository.findAll().map { it.toModel() }
+
+    suspend fun create(create: TickerSymbolCreate) = tickerSymbolRepository.save(create.toEntity())
 }
