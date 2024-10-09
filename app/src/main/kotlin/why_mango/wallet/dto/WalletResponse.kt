@@ -19,13 +19,16 @@ data class WalletResponse(
     val createdAt: LocalDateTime,
 )
 
-fun WalletModel.toResponse() = WalletResponse(
-    id = id,
-    apiProvider = apiProvider,
-    status = status,
-    appKey = appKey.mask(),
-    additionalInfo = additionalInfo,
-    securities = securities,
-    memo = memo,
-    createdAt = createdAt,
-)
+fun WalletModel.toResponse(): WalletResponse {
+    assert(securities != null) { "securities must not be null" }
+    return WalletResponse(
+        id = id,
+        apiProvider = apiProvider,
+        status = status,
+        appKey = appKey.mask(),
+        additionalInfo = additionalInfo,
+        securities = securities!!,
+        memo = memo,
+        createdAt = createdAt,
+    )
+}

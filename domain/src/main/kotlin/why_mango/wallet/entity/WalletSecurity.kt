@@ -24,13 +24,17 @@ class WalletSecurity (
     val symbol: String,
 
     @Column("balance")
-    val balance: BigDecimal,
+    var balance: BigDecimal,
 
     @Column("locked")
-    val locked: BigDecimal,
+    var locked: BigDecimal,
 
     @Column("average_buy_price")
-    val averageBuyPrice: BigDecimal,
+    var averageBuyPrice: BigDecimal,
+
+    @CreatedDate
+    @Column("last_synced_at")
+    var lastSyncedAt: LocalDateTime? = null,
 
     @CreatedDate
     @Column("created_at")

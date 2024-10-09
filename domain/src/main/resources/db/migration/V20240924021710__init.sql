@@ -34,10 +34,9 @@ create table if not exists wallet (
     app_secret varchar(255) not null,
     additional_info jsonb not null,
     memo text,
+    last_synced_at timestamp null default current_timestamp,
     created_at timestamp not null default current_timestamp
 );
-
-insert into wallet (api_provider, app_key, app_secret, additional_info) values ('UPBIT', 'app_key', 'api_secret', '{}');
 
 create table if not exists wallet_security (
     id serial primary key,
@@ -47,5 +46,6 @@ create table if not exists wallet_security (
     balance decimal(32, 8) not null,
     locked decimal(32, 8) not null,
     average_buy_price decimal(32, 8) not null,
+    last_synced_at timestamp null default current_timestamp,
     created_at timestamp not null default current_timestamp
 );

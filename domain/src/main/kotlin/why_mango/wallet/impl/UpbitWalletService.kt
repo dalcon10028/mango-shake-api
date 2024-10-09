@@ -4,10 +4,10 @@ import kotlinx.coroutines.flow.map
 import org.springframework.stereotype.Service
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.toList
 import org.springframework.transaction.annotation.Transactional
 import why_mango.enums.*
-import why_mango.enums.Currency
 import why_mango.exception.ErrorCode
 import why_mango.exception.MangoShakeException
 import why_mango.upbit.UpbitRest
@@ -18,6 +18,7 @@ import why_mango.wallet.*
 import why_mango.wallet.entity.Wallet
 import why_mango.wallet.entity.WalletSecurity
 import why_mango.wallet.repository.WalletSecurityRepository
+import java.time.LocalDateTime
 import java.util.*
 import kotlin.collections.List
 
@@ -49,6 +50,53 @@ class UpbitWalletService(
             )
         }
         return wallet.toModel(walletSecurityRepository.saveAll(securities).map { it.toModel() }.toList().associateBy { it.symbol })
+    }
+
+    @Transactional
+    override suspend fun syncWallet(walletId: Long): WalletModel {
+        val lastSyncedAt = LocalDateTime.now()
+
+        val wallet = walletRepository.findById(walletId) ?: throw MangoShakeException(ErrorCode.RESOURCE_NOT_FOUND, "Wallet not found")
+        val securities = walletSecurityRepository.findByWalletId(walletId).toList()
+        val assets: List<AccountResponse> = upbitRest.getAccounts(generateToken(wallet.appKey, wallet.appSecret))
+
+        walletRepository.save(wallet.also {
+            it.lastSyncedAt = lastSyncedAt
+        })
+
+        securities.forEach { security ->
+            val asset = assets.find { it.currency == security.symbol }
+            if (asset == null) {
+                walletSecurityRepository.deleteByWalletIdAndSymbol(walletId, security.symbol)
+            } else {
+                walletSecurityRepository.save(
+                    security.also {
+                        it.balance = asset.balance
+                        it.locked = asset.locked
+                        it.averageBuyPrice = asset.avgBuyPrice
+                        it.lastSyncedAt = lastSyncedAt
+                    }
+                )
+            }
+        }
+
+        assets.filter { asset -> securities.none { it.symbol == asset.currency } }
+            .forEach { asset ->
+                walletSecurityRepository.save(
+                    WalletSecurity(
+                        walletId = walletId,
+                        currency = asset.unitCurrency,
+                        symbol = asset.currency,
+                        balance = asset.balance,
+                        locked = asset.locked,
+                        averageBuyPrice = asset.avgBuyPrice,
+                        lastSyncedAt = lastSyncedAt,
+                        createdAt = lastSyncedAt
+                    )
+                )
+            }
+
+        return wallet.toModel(walletSecurityRepository.findByWalletId(walletId).map { it.toModel() }.toList().associateBy { it.symbol })
     }
 
     private suspend fun generateToken(appKey: String, appSecret: String): String {

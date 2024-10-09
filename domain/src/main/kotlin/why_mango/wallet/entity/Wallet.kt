@@ -33,6 +33,10 @@ class Wallet (
     val memo: String? = null,
 
     @CreatedDate
+    @Column("last_synced_at")
+    var lastSyncedAt: LocalDateTime? = null,
+
+    @CreatedDate
     @Column("created_at")
     val createdAt: LocalDateTime? = null,
 )

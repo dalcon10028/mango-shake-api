@@ -28,8 +28,9 @@ data class WalletModel(
     val appKey: String,
     val appSecret: String,
     val additionalInfo: AdditionalInfo,
-    val securities: Map<String, WalletSecurityModel>,
+    val securities: Map<String, WalletSecurityModel>?,
     val memo: String?,
+    val lastSyncedAt: LocalDateTime,
     val createdAt: LocalDateTime,
 )
 
@@ -40,7 +41,8 @@ data class WalletSecurityModel(
     val currency: Currency,
     val balance: BigDecimal,
     val locked: BigDecimal,
-    val averageBuyPrice: BigDecimal
+    val averageBuyPrice: BigDecimal,
+    val lastSyncedAt: LocalDateTime,
 )
 
 @Serializable
