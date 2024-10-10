@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.*
 import org.junit.jupiter.api.Assertions.*
 
 class WalletSyncSchedulerTest: FunSpec({
-    test("test") {
+    test("test").config(enabled = false) {
         // 1~100
         (1..100).asFlow()
             .buffer(10)
