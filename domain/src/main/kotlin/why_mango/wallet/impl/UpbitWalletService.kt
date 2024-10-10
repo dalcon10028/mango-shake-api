@@ -15,18 +15,21 @@ import kotlin.collections.List
 
 import why_mango.enums.*
 import kotlinx.coroutines.flow.*
+import why_mango.enums.Currency
 import why_mango.wallet.repository.*
 import why_mango.wallet.entity.*
 import why_mango.wallet.*
+import java.math.BigDecimal
 import java.util.*
 
 @Service
 class UpbitWalletService(
     private val walletRepository: WalletRepository,
     private val walletSecurityRepository: WalletSecurityRepository,
+    walletSnapshotRepository: WalletSnapshotRepository,
     walletSecuritySnapshotRepository: WalletSecuritySnapshotRepository,
     private val upbitRest: UpbitRest,
-) : WalletService(walletRepository, walletSecurityRepository, walletSecuritySnapshotRepository) {
+) : WalletService(walletRepository, walletSecurityRepository, walletSnapshotRepository, walletSecuritySnapshotRepository) {
 
     override val apiProvider: ApiProvider = ApiProvider.UPBIT
 
@@ -36,8 +39,8 @@ class UpbitWalletService(
             throw MangoShakeException(ErrorCode.DUPLICATED_RESOURCE, "Wallet already exists")
         }
 
-        val wallet: Wallet = walletRepository.save(create.toEntity())
         val accounts: List<AccountResponse> = upbitRest.getAccounts(generateToken(create.appKey, create.appSecret))
+        val wallet: Wallet = walletRepository.save(create.toEntity())
         val securities = accounts.map {
             WalletSecurity(
                 walletId = wallet.id!!,

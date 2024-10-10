@@ -34,6 +34,10 @@ create table if not exists wallet (
     app_secret varchar(255) not null,
     additional_info jsonb not null,
     memo text,
+    beginning_assets decimal(32, 8) not null default 0,
+    ending_assets decimal(32, 8) not null default 0,
+    deposits_during_period decimal(32, 8) not null default 0,
+    withdrawals_during_period decimal(32, 8) not null default 0,
     last_synced_at timestamp null default current_timestamp,
     created_at timestamp not null default current_timestamp
 );
@@ -50,10 +54,23 @@ create table if not exists wallet_security (
     created_at timestamp not null default current_timestamp
 );
 
-create table if not exists wallet_security_snapshot (
+create table if not exists wallet_snapshot (
     id serial primary key,
     wallet_id int not null,
+    base_date date not null,
+    beginning_assets decimal(32, 8) not null default 0,
+    ending_assets decimal(32, 8) not null default 0,
+    deposits_during_period decimal(32, 8) not null default 0,
+    withdrawals_during_period decimal(32, 8) not null default 0,
+    created_at timestamp not null default current_timestamp
+);
+
+create table if not exists wallet_security_snapshot (
+    id serial primary key,
+    wallet_snapshot_id int not null,
+    wallet_id int not null,
     wallet_security_id int not null,
+    base_date date not null,
     currency varchar(10) not null,
     symbol varchar(30) not null,
     balance decimal(32, 8) not null,

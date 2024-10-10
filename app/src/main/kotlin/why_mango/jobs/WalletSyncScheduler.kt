@@ -31,17 +31,17 @@ class WalletSyncScheduler(
 //    @Scheduled(fixedDelay = 1000 * 60 * 60 * 24)
     suspend fun syncWalletForCryptoCurrency() {
         try {
-            logger.info { "Start syncWalletForCryptoCurrency" }
+            val baseDate = LocalDate.now().minusDays(1)
+            logger.info { "Start syncWalletForCryptoCurrency: $baseDate" }
 
             walletService.getWalletsWithoutSecurities(ApiProvider.UPBIT)
 //                .chunked(20)
                 .mapNotNull { wallet ->
                     delay(100)
                     walletFactory.get(ApiProvider.UPBIT).syncWallet(wallet.id)
-                        .securities?.values?.toList()
                 }
-                .map { securities ->
-                    walletService.createWalletSecuritiesSnapshot(securities)
+                .map { wallet ->
+                    walletService.createWalletSecuritiesSnapshot(wallet, baseDate)
                 }
                 .collect { logger.info { "Sync wallet: $it" } }
 

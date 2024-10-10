@@ -1,13 +1,14 @@
 package why_mango.wallet
 
 import why_mango.wallet.entity.*
+import java.time.LocalDate
 
 fun WalletCreate.toEntity(): Wallet {
     return Wallet(
         apiProvider = this.apiProvider,
         appKey = this.appKey,
         appSecret = this.appSecret,
-        additionalInfo = this.additionalInfo
+        additionalInfo = this.additionalInfo,
     )
 }
 
@@ -40,15 +41,32 @@ fun Wallet.toModel(securities: Map<String, WalletSecurityModel>?): WalletModel {
         additionalInfo = this.additionalInfo,
         securities = securities,
         memo = this.memo,
+        beginningAssets = this.beginningAssets,
+        endingAssets = this.endingAssets,
+        depositsDuringPeriod = this.depositsDuringPeriod,
+        withdrawalsDuringPeriod = this.withdrawalsDuringPeriod,
         lastSyncedAt = this.lastSyncedAt!!,
         createdAt = this.createdAt!!,
     )
 }
 
-fun WalletSecurityModel.toSnapshot(): WalletSecuritySnapshot {
+fun WalletModel.toSnapshot(baseDate: LocalDate): WalletSnapshot {
+    return WalletSnapshot(
+        walletId = this.id,
+        baseDate = baseDate,
+        beginningAssets = this.beginningAssets,
+        endingAssets = this.endingAssets,
+        depositsDuringPeriod = this.depositsDuringPeriod,
+        withdrawalsDuringPeriod = this.withdrawalsDuringPeriod,
+    )
+}
+
+fun WalletSecurityModel.toSnapshot(walletSnapshotId: Long, baseDate: LocalDate): WalletSecuritySnapshot {
     return WalletSecuritySnapshot(
         walletId = this.walletId,
+        walletSnapshotId = walletSnapshotId,
         walletSecurityId = this.id,
+        baseDate = baseDate,
         currency = this.currency,
         symbol = this.symbol,
         balance = this.balance,

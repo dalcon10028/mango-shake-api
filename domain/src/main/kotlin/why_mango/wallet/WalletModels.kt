@@ -30,6 +30,10 @@ data class WalletModel(
     val additionalInfo: AdditionalInfo,
     val securities: Map<String, WalletSecurityModel>?,
     val memo: String?,
+    var beginningAssets: BigDecimal,
+    var endingAssets: BigDecimal,
+    var depositsDuringPeriod: BigDecimal,
+    var withdrawalsDuringPeriod: BigDecimal,
     val lastSyncedAt: LocalDateTime,
     val createdAt: LocalDateTime,
 )
