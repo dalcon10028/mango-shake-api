@@ -34,7 +34,7 @@ class WalletSyncScheduler(
             val baseDate = LocalDate.now().minusDays(1)
             logger.info { "Start syncWalletForCryptoCurrency: $baseDate" }
 
-            walletService.getWalletsWithoutSecurities(ApiProvider.UPBIT)
+            walletService.getWallets(ApiProvider.UPBIT)
 //                .chunked(20)
                 .mapNotNull { wallet ->
                     delay(100)
