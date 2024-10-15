@@ -27,7 +27,7 @@ class WalletSyncScheduler(
     /**
      * 매일 오전 9(utc0)시에 암호화폐 마감
      */
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 0 9 * * *", zone = "Asia/Seoul")
 //    @Scheduled(fixedDelay = 1000 * 60 * 60 * 24)
     suspend fun syncWalletForCryptoCurrency() {
         try {
