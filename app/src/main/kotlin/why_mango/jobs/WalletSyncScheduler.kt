@@ -25,9 +25,9 @@ class WalletSyncScheduler(
     private val logger = KotlinLogging.logger {}
 
     /**
-     * 매일 오전 9시에 암호화폐 마감
+     * 매일 오전 9(utc0)시에 암호화폐 마감
      */
-    @Scheduled(cron = "0 0 9 * * *")
+    @Scheduled(cron = "0 0 0 * * *")
 //    @Scheduled(fixedDelay = 1000 * 60 * 60 * 24)
     suspend fun syncWalletForCryptoCurrency() {
         try {

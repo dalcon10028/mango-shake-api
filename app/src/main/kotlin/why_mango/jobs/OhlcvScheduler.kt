@@ -23,10 +23,10 @@ class OhlcvScheduler(
     private val logger = KotlinLogging.logger {}
 
     /**
-     * 매일 오전 10시에 전날 데이터 수집
+     * 매일 오전 10시(utc 1시)에 전날 데이터 수집
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    @Scheduled(cron = "0 0 10 * * *")
+    @Scheduled(cron = "0 0 1 * * *")
 //    @Scheduled(fixedDelay = 1000 * 60 * 60 * 24)
     suspend fun ohlcvDay() {
         try {
