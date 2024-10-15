@@ -8,4 +8,4 @@ ARG PORT=8080
 ENV PORT ${PORT}
 EXPOSE ${PORT}
 
-ENTRYPOINT java -jar /app/app.jar --server.port=${PORT}
+ENTRYPOINT java -jar /app/app.jar --server.port=${PORT} -Duser.timezone=Asia/Seoul
