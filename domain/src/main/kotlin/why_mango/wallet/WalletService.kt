@@ -51,11 +51,10 @@ abstract class WalletService(
         return wallet.toModel(securities.map { it.toModel() }.toList().associateBy { it.symbol })
     }
 
+    @Transactional
     suspend fun createWalletSecuritiesSnapshot(wallet: WalletModel, baseDate: LocalDate) {
-        walletSnapshotRepository.save(wallet.toSnapshot(baseDate))
-            .let { walletSnapshot ->
-                walletSecuritySnapshotRepository.saveAll(wallet.securities?.values?.map { it.toSnapshot(walletSnapshot.id!!, baseDate) } ?: emptyList())
-            }
+        val walletSnapshotId = walletSnapshotRepository.save(wallet.toSnapshot(baseDate)).id
+        walletSecuritySnapshotRepository.saveAll(wallet.securities?.values?.map { it.toSnapshot(walletSnapshotId!!, baseDate) } ?: emptyList()).collect()
     }
 
     abstract suspend fun createWallet(create: WalletCreate): WalletModel

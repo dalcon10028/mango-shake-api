@@ -1,18 +1,12 @@
 package why_mango.jobs
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import why_mango.candle.CandleServiceFactory
-import why_mango.jobs.dto.OhlcvDayJobDtos
-import why_mango.ohlcv.OhlcvDayCreate
-import why_mango.ohlcv.OhlcvDayService
 import java.time.LocalDate
 import why_mango.enums.*
 import kotlinx.coroutines.flow.*
-import why_mango.ticker_symbol.TickerSymbolService
 import why_mango.wallet.WalletFactory
 import why_mango.wallet.WalletService
 
@@ -34,7 +28,7 @@ class WalletSyncScheduler(
             val baseDate = LocalDate.now().minusDays(1)
             logger.info { "Start syncWalletForCryptoCurrency: $baseDate" }
 
-            walletService.getWallets(ApiProvider.UPBIT)
+            walletService.getWalletsWithoutSecurities(ApiProvider.UPBIT)
 //                .chunked(20)
                 .mapNotNull { wallet ->
                     delay(100)
