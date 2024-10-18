@@ -33,6 +33,7 @@ subprojects {
         val mockkVersion by extra { "1.13.12" }
 
         implementation("org.jetbrains.kotlin:kotlin-reflect")
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")
         implementation("io.github.oshai:kotlin-logging-jvm:5.1.4")
         implementation("org.springframework.boot:spring-boot-starter")

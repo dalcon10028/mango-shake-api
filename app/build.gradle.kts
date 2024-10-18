@@ -20,14 +20,20 @@ repositories {
 
 dependencies {
 	val springDocVersion by extra { "2.6.0" }
+	val jjwtVersion by extra { "0.12.6" }
 
 	implementation(project(":domain"))
 	implementation(project(":shared"))
 	implementation(project(":market_broker"))
 	implementation(project(":finance"))
 
-//	implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
-//	implementation("org.springframework.boot:spring-boot-starter-security")
+	// security
+	implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+	implementation("org.springframework.boot:spring-boot-starter-security")
+//	implementation("org.springframework.security:spring-security-config")
+	implementation("io.jsonwebtoken:jjwt-api:$jjwtVersion")
+	implementation("io.jsonwebtoken:jjwt-impl:$jjwtVersion")
+	implementation("io.jsonwebtoken:jjwt-jackson:$jjwtVersion")
 
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")

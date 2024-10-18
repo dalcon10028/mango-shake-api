@@ -22,7 +22,7 @@ dependencies {
 	implementation(project(":shared"))
 	implementation(project(":market_broker"))
 
-	implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
+	api("org.springframework.boot:spring-boot-starter-data-r2dbc")
 	implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
