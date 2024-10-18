@@ -1,4 +1,4 @@
-package why_mango.configs
+package why_mango.config
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition
 import io.swagger.v3.oas.annotations.info.Info
