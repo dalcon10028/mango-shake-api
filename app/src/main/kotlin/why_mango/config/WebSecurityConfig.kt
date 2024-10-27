@@ -50,10 +50,10 @@ class WebSecurityConfig(
                 authorize(pathMatchers("/auth/**"), permitAll)
                 authorize(pathMatchers("/oauth2/**"), permitAll)
                 authorize(pathMatchers("/admin/**"), hasRole("ADMIN"))
-//                authorize(anyExchange, authenticated)
+                authorize(anyExchange, authenticated)
             }
             formLogin { disable() }
-            httpBasic { disable() }
+            httpBasic { withDefaults() }
             csrf { disable() }
 //            oauth2Login {}
             sessionManagement { SessionCreationPolicy.STATELESS }
