@@ -45,14 +45,15 @@ class WebSecurityConfig(
     suspend fun securityWebFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
         return http {
             authorizeExchange {
+                authorize(pathMatchers("/actuator/health"), permitAll)
+                authorize(pathMatchers("/webjars/**"), permitAll)
                 authorize(pathMatchers("/auth/**"), permitAll)
                 authorize(pathMatchers("/oauth2/**"), permitAll)
                 authorize(pathMatchers("/admin/**"), hasRole("ADMIN"))
-                authorize(anyExchange, authenticated)
+//                authorize(anyExchange, authenticated)
             }
-//            formLogin { withDefaults() }
             formLogin { disable() }
-            httpBasic { withDefaults() }
+            httpBasic { disable() }
             csrf { disable() }
 //            oauth2Login {}
             sessionManagement { SessionCreationPolicy.STATELESS }

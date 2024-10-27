@@ -45,6 +45,9 @@ dependencies {
 	implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:$springDocVersion")
 	implementation("org.springdoc:springdoc-openapi-starter-webflux-api:$springDocVersion")
 
+	// metrics
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
+
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("io.projectreactor:reactor-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
