@@ -68,7 +68,7 @@ class WebSecurityConfig(
 //            if (env.isLocal()) add("http://localhost:3000")
 //        }
         configuration.allowedOrigins = listOf(
-            "https://mango-shake-web.vercel.app",
+            "https://*.whymango.site",
             "http://localhost:3000"
         )
         configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE")
