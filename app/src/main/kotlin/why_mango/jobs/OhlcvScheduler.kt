@@ -2,10 +2,10 @@ package why_mango.jobs
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import why_mango.candle.CandleServiceFactory
-import why_mango.jobs.dto.OhlcvDayJobDtos
 import why_mango.ohlcv.OhlcvDayCreate
 import why_mango.ohlcv.OhlcvDayService
 import java.time.LocalDate
@@ -36,6 +36,7 @@ class OhlcvScheduler(
             val endDate = LocalDate.now().minusDays(1)
 
             tickerSymbolService.getTickerSymbols()
+                .onEach { delay(500) } // TODO: upbit api throttling 처리해야함
                 .flatMapMerge { tickerSymbol ->
                     candleServiceFactory.get(tickerSymbol.market)
                         .getDayCandles(tickerSymbol.symbol, tickerSymbol.baseCurrency, startDate, endDate)

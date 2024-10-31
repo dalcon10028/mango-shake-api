@@ -23,6 +23,8 @@ class UpbitFeignConfig {
     private val errorMap = mapOf(
         "no_authorization_token" to ErrorCode.OPEN_API_AUTH_ERROR,
         "invalid_access_key" to ErrorCode.INVALID_ACCESS_KEY,
+        "too_many_requests" to ErrorCode.TOO_MANY_REQUESTS,
+        "404" to ErrorCode.CODE_NOT_FOUND,
     )
 
     @Bean
@@ -75,6 +77,9 @@ class UpbitFeignConfig {
             throw MangoShakeException(ErrorCode.UPBIT_ERROR, response)
         }
 
-        throw MangoShakeException(errorMap[upbitError.name] ?: ErrorCode.UPBIT_ERROR, "[${upbitError.name}] ${upbitError.message ?: ""}")
+        throw MangoShakeException(
+            errorCode = errorMap[upbitError.name] ?: ErrorCode.UPBIT_ERROR, "[${upbitError.name}] ${upbitError.message ?: ""}",
+            data = mapOf("requestUrl" to r.request().url())
+        )
     }
 }
