@@ -1,5 +1,6 @@
 package why_mango.config
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authorization.method.AuthorizationAdvisorProxyFactory.withDefaults
@@ -26,6 +27,7 @@ class WebSecurityConfig(
     private val env: EnvironmentComponent,
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
     private val serverAuthenticationSuccessHandler: AuthenticationSuccessHandler,
+    @Value("\${app.web-base-url}") private val webBaseUrl: String,
 ) {
 
     @Bean
@@ -61,7 +63,7 @@ class WebSecurityConfig(
 //            if (env.isLocal()) add("http://localhost:3000")
 //        }
         configuration.allowedOrigins = listOf(
-            "https://*.whymango.site",
+            webBaseUrl,
             "http://localhost:3000"
         )
         configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE")
