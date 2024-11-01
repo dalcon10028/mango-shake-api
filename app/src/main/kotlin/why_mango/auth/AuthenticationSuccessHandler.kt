@@ -24,7 +24,8 @@ import java.net.URI
 class AuthenticationSuccessHandler(
     private val userService: UserService,
     private val tokenProvider: JwtTokenProvider,
-    @Value("\${app.web-base-url}") private val webBaseUrl: String
+    @Value("\${app.web-base-url}") private val webBaseUrl: String,
+    @Value("\${app.domain}") private val domain: String,
 ): ServerAuthenticationSuccessHandler {
     private val logger = KotlinLogging.logger {}
     private val redirectStrategy: ServerRedirectStrategy = DefaultServerRedirectStrategy()
@@ -59,7 +60,7 @@ class AuthenticationSuccessHandler(
                     .httpOnly(true)
                     .secure(true)
                     .sameSite("Lax")
-                    .domain("localhost")
+                    .domain(domain)
                     .build()
             )
         }

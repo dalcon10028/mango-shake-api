@@ -38,4 +38,5 @@ auth:
     refresh-token-expiration: ${AUTH_JWT_REFRESH_TOKEN_EXPIRATION}
 
 app:
+  domain: ${APP_DOMAIN}
   web-base-url: ${APP_WEB_BASE_URL}
