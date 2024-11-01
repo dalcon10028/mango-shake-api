@@ -44,6 +44,7 @@ class WebSecurityConfig(
             formLogin { withDefaults() }
             httpBasic { disable() }
             csrf { disable() }
+            cors { corsConfigurationSource() }
             // https://velog.io/@yso8296/Spring-Security를-이용한-통합-OAuth2-소셜-로그인-기능-구현
             // https://velog.io/@rkdalstj4505/스프링-시큐리티OAuth2카카오로-로그인로그아웃-구현
             oauth2Login {
@@ -56,22 +57,17 @@ class WebSecurityConfig(
 
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
-        val configuration = CorsConfiguration()
-        // TODO: 환경 분리시 cors 설정 변경
-//        configuration.allowedOrigins = buildList {
-//            add("https://mango-shake-web.vercel.app")
-//            if (env.isLocal()) add("http://localhost:3000")
-//        }
-        configuration.allowedOrigins = listOf(
-            webBaseUrl,
-            "http://localhost:3000"
-        )
-        configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE")
-        configuration.allowedHeaders = listOf("*")
-        configuration.allowCredentials = true
-        configuration.maxAge = 3600L
-        val source = UrlBasedCorsConfigurationSource()
-        source.registerCorsConfiguration("/**", configuration)
-        return source
+        val configuration = CorsConfiguration().also {
+            it.allowedOrigins = listOf(
+                webBaseUrl,
+                "http://localhost:3000" // TODO: 환경 분리시 cors 설정 변경
+            )
+            it.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
+            it.allowedHeaders = listOf("*")
+            it.allowCredentials = true
+            it.maxAge = 3600L
+        }
+
+        return UrlBasedCorsConfigurationSource().also { it.registerCorsConfiguration("/**", configuration) }
     }
 }
