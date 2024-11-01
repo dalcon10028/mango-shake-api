@@ -68,7 +68,7 @@ class AuthenticationSuccessHandler(
         redirectStrategy.sendRedirect(
             webFilterExchange.exchange,
             // 회원가입시 승인 대기 페이지로 이동
-            URI.create(webBaseUrl + if (isSignUp) "/approval" else "")
+            URI.create(webBaseUrl + if (isSignUp) "/auth/approval" else "")
         ).awaitSingleOrNull()
 
         null
