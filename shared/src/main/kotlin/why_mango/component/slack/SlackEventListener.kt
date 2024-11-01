@@ -2,7 +2,6 @@ package why_mango.component.slack
 
 import com.slack.api.Slack
 import com.slack.api.model.Attachments.attachment
-import com.slack.api.model.kotlin_extension.block.withBlocks
 import com.slack.api.webhook.Payload
 import com.slack.api.webhook.WebhookPayloads.*
 import kotlinx.coroutines.CoroutineScope
@@ -22,7 +21,7 @@ class SlackEventListener(
 
     @EventListener(SlackEvent::class)
     fun slackEventListener(event: SlackEvent) = applicationCoroutineScope.launch {
-        val url = slackProperties.webhook[event.topic]?.url ?: throw MangoShakeException(ErrorCode.ILLIGAL_STATE, "No webhook url for ${event.topic}")
+        val url = slackProperties.webhook[event.topic]?.url ?: throw MangoShakeException(ErrorCode.ILLEGAL_STATE, "No webhook url for ${event.topic}")
 
         val payload: Payload = payload { p -> p
 //            .blocks(

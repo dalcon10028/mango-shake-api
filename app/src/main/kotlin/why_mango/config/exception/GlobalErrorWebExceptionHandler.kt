@@ -1,4 +1,4 @@
-package why_mango.configs.exception
+package why_mango.config.exception
 
 import org.springframework.boot.autoconfigure.web.WebProperties
 import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler

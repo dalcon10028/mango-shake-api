@@ -1,6 +1,24 @@
 spring:
   profiles:
     include: shared, domain, market-broker, finance
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-name: kakao
+            client-id: ${OAUTH2_KAKAO_REST_KEY}
+            client-secret: ${OAUTH2_KAKAO_CLIENT_SECRET}
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/kakao"
+            client-authentication-method: client_secret_post
+        provider:
+          kakao:
+            # https://developers.kakao.com/docs/latest/ko/kakaologin/common#api-list
+            authorization-uri: https://kauth.kakao.com/oauth/authorize # https://developers.kakao.com/docs/latest/ko/kakaologin/rest-api#request-code
+            token-uri: https://kauth.kakao.com/oauth/token # https://developers.kakao.com/docs/latest/ko/kakaologin/rest-api#request-token
+            user-info-uri: https://kapi.kakao.com/v2/user/me # https://developers.kakao.com/docs/latest/ko/kakaologin/rest-api#req-user-info
+            user-name-attribute: id
 
 springdoc:
   show-actuator: true
@@ -12,3 +30,12 @@ springdoc:
 logging:
   level:
     root: info
+
+auth:
+  jwt:
+    secret: ${AUTH_JWT_SECRET}
+    access-token-expiration: ${AUTH_JWT_ACCESS_TOKEN_EXPIRATION}
+    refresh-token-expiration: ${AUTH_JWT_REFRESH_TOKEN_EXPIRATION}
+
+app:
+  web-base-url: ${APP_WEB_BASE_URL}

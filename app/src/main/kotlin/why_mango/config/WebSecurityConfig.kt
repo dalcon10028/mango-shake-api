@@ -6,23 +6,17 @@ import org.springframework.security.authorization.method.AuthorizationAdvisorPro
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
-import org.springframework.security.core.session.*
-import org.springframework.security.web.server.authentication.logout.*
-import org.springframework.security.core.userdetails.*
 
 // https://stackoverflow.com/questions/66018084/how-to-enable-spring-security-kotlin-dsl
 import org.springframework.security.config.web.server.invoke
-import org.springframework.security.oauth2.client.registration.ClientRegistration
-import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository
-import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository
-import org.springframework.security.oauth2.core.AuthorizationGrantType
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod
-import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers.pathMatchers
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.reactive.CorsConfigurationSource
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
+import why_mango.auth.AuthenticationSuccessHandler
+import why_mango.auth.JwtAuthenticationFilter
 import why_mango.component.environment.EnvironmentComponent
 
 
@@ -30,16 +24,9 @@ import why_mango.component.environment.EnvironmentComponent
 @EnableWebFluxSecurity
 class WebSecurityConfig(
     private val env: EnvironmentComponent,
+    private val jwtAuthenticationFilter: JwtAuthenticationFilter,
+    private val serverAuthenticationSuccessHandler: AuthenticationSuccessHandler,
 ) {
-    @Bean
-    fun userDetailsService(): MapReactiveUserDetailsService {
-        val user: UserDetails = User.builder()
-            .username("user")
-            .password("{noop}user")
-            .roles("USER")
-            .build()
-        return MapReactiveUserDetailsService(user)
-    }
 
     @Bean
     suspend fun securityWebFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
@@ -52,10 +39,15 @@ class WebSecurityConfig(
                 authorize(pathMatchers("/admin/**"), hasRole("ADMIN"))
                 authorize(anyExchange, authenticated)
             }
-            formLogin { disable() }
-            httpBasic { withDefaults() }
+            formLogin { withDefaults() }
+            httpBasic { disable() }
             csrf { disable() }
-//            oauth2Login {}
+            // https://velog.io/@yso8296/Spring-Security를-이용한-통합-OAuth2-소셜-로그인-기능-구현
+            // https://velog.io/@rkdalstj4505/스프링-시큐리티OAuth2카카오로-로그인로그아웃-구현
+            oauth2Login {
+                authenticationSuccessHandler = serverAuthenticationSuccessHandler
+            }
+            addFilterBefore(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
             sessionManagement { SessionCreationPolicy.STATELESS }
         }
     }
@@ -63,6 +55,7 @@ class WebSecurityConfig(
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
+        // TODO: 환경 분리시 cors 설정 변경
 //        configuration.allowedOrigins = buildList {
 //            add("https://mango-shake-web.vercel.app")
 //            if (env.isLocal()) add("http://localhost:3000")
@@ -79,5 +72,4 @@ class WebSecurityConfig(
         source.registerCorsConfiguration("/**", configuration)
         return source
     }
-
 }
