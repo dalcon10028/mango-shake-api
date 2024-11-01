@@ -44,7 +44,8 @@ class WebSecurityConfig(
             formLogin { withDefaults() }
             httpBasic { disable() }
             csrf { disable() }
-            cors { corsConfigurationSource() }
+//            cors { corsConfigurationSource() }
+            cors { disable() }
             // https://velog.io/@yso8296/Spring-Security를-이용한-통합-OAuth2-소셜-로그인-기능-구현
             // https://velog.io/@rkdalstj4505/스프링-시큐리티OAuth2카카오로-로그인로그아웃-구현
             oauth2Login {
