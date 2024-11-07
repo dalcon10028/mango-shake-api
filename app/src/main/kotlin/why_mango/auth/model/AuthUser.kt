@@ -9,6 +9,8 @@ import why_mango.user.enums.Role
 class AuthUser(
     val uid : Long? = null,
     val role: Role? = null,
+    val nickname: String? = null,
+    val profileImageUrl: String? = null,
     private val username: String,
     private val attributes: MutableMap<String, Any> = mutableMapOf()
 ) : UserDetails, OAuth2User {
@@ -28,6 +30,8 @@ class AuthUser(
         fun from(user: UserModel): AuthUser {
             return AuthUser(
                 uid = user.uid,
+                nickname = user.nickname,
+                profileImageUrl = user.profileImageUrl,
                 username = user.username,
                 role = user.role
             )

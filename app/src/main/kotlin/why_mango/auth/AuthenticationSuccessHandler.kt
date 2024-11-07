@@ -33,7 +33,7 @@ class AuthenticationSuccessHandler(
     override fun onAuthenticationSuccess(webFilterExchange: WebFilterExchange, authentication: Authentication): Mono<Void> = mono {
         val auth = authentication as OAuth2AuthenticationToken
         // 회원가입 여부
-        var isSignUp: Boolean = false
+        var isSignUp = false
         val user: UserModel = userService.findByUsername(auth.principal.name) ?: run {
             val userCreate = when (auth.authorizedClientRegistrationId) {
                 /**
@@ -54,11 +54,11 @@ class AuthenticationSuccessHandler(
 
         webFilterExchange.exchange.response.also {
             it.addCookie(
-                ResponseCookie.from("accessToken", user.toAccessToken())
+                ResponseCookie.from("mango_shake_access_token", user.toAccessToken())
                     .path("/")
-                    .maxAge(60) // 1분
-                    .httpOnly(true)
-                    .secure(true)
+                    .maxAge(2*10*60) // 20분
+                    .httpOnly(false)
+                    .secure(false)
                     .sameSite("Lax")
                     .domain(domain)
                     .build()

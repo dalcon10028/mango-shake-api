@@ -43,9 +43,9 @@ class JwtTokenProvider(
 
         @Suppress("UNCHECKED_CAST")
         AuthUser(
-            uid = claims.payload["uid"] as Long,
-            username = claims.payload["email"] as String,
-            role = claims.payload["role"] as Role
+            uid = (claims.payload["uid"] as Int).toLong(),
+            username = claims.payload["username"] as String,
+            role = Role.fromString(claims.payload["role"] as String)
         )
     } catch (e: Exception) {
         logger.error(e) { "Failed to parse token" }
@@ -61,6 +61,8 @@ class JwtTokenProvider(
             .claims(
                 mapOf(
                     "username" to userInfo.username,
+                    "nickname" to userInfo.nickname,
+                    "profileImageUrl" to userInfo.profileImageUrl,
                     "uid" to userInfo.uid,
                     "role" to userInfo.role
                 )
