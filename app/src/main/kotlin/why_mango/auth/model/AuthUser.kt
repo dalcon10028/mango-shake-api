@@ -4,11 +4,13 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.oauth2.core.user.OAuth2User
 import why_mango.user.UserModel
+import why_mango.user.enums.Privilege
 import why_mango.user.enums.Role
 
 class AuthUser(
     val uid : Long? = null,
     val role: Role? = null,
+    val privileges: Set<Privilege>? = null,
     val nickname: String? = null,
     val profileImageUrl: String? = null,
     private val username: String,
@@ -33,7 +35,8 @@ class AuthUser(
                 nickname = user.nickname,
                 profileImageUrl = user.profileImageUrl,
                 username = user.username,
-                role = user.role
+                role = user.role,
+                privileges = user.role.privileges
             )
         }
 

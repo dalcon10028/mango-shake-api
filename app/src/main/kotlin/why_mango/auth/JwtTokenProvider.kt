@@ -45,7 +45,9 @@ class JwtTokenProvider(
         AuthUser(
             uid = (claims.payload["uid"] as Int).toLong(),
             username = claims.payload["username"] as String,
-            role = Role.fromString(claims.payload["role"] as String)
+            role = Role.fromString(claims.payload["role"] as String),
+            privileges = Role.fromString(claims.payload["role"] as String).privileges,
+
         )
     } catch (e: Exception) {
         logger.error(e) { "Failed to parse token" }
@@ -64,7 +66,8 @@ class JwtTokenProvider(
                     "nickname" to userInfo.nickname,
                     "profileImageUrl" to userInfo.profileImageUrl,
                     "uid" to userInfo.uid,
-                    "role" to userInfo.role
+                    "role" to userInfo.role,
+                    "privileges" to userInfo.role.privileges
                 )
             )
             .issuedAt(now)

@@ -1,9 +1,19 @@
 package why_mango.user.enums
 
 enum class Role(val privileges: Set<Privilege>) {
-    GUEST(setOf(Privilege.DASHBOARD_AUTHORITY)),
-    USER(setOf(Privilege.DASHBOARD_AUTHORITY, Privilege.WALLET_AUTHORITY)),
-    ADMIN(setOf(Privilege.DASHBOARD_AUTHORITY, Privilege.WALLET_AUTHORITY, Privilege.ADMIN_AUTHORITY)),
+    GUEST(setOf(Privilege.COMMUNITY_READ)),
+    USER(setOf(Privilege.COMMUNITY_READ, Privilege.MEMBER_READ, Privilege.MEMBER_WRITE, Privilege.MEMBER_DELETE)),
+    ADMIN(
+        setOf(
+            Privilege.COMMUNITY_READ,
+            Privilege.MEMBER_READ,
+            Privilege.MEMBER_WRITE,
+            Privilege.MEMBER_DELETE,
+            Privilege.MANAGER_READ,
+            Privilege.MANAGER_WRITE,
+            Privilege.MANAGER_DELETE
+        )
+    ),
     ;
 
     companion object {
