@@ -38,6 +38,7 @@ class WebSecurityConfig(
             authorizeExchange {
                 authorize(pathMatchers("/actuator/health"), permitAll)
                 authorize(pathMatchers("/webjars/**"), permitAll)
+                authorize(pathMatchers("/v3/api-docs/**"), permitAll)
                 authorize(pathMatchers("/auth/**"), permitAll)
                 authorize(pathMatchers("/oauth2/**"), permitAll)
                 authorize(pathMatchers("/admin/**"), hasRole(Role.ADMIN.name))
