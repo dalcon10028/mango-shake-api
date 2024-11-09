@@ -20,6 +20,7 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
 import why_mango.auth.AuthenticationSuccessHandler
 import why_mango.auth.JwtAuthenticationFilter
 import why_mango.component.environment.EnvironmentComponent
+import why_mango.user.enums.Role
 
 
 @Configuration
@@ -39,7 +40,7 @@ class WebSecurityConfig(
                 authorize(pathMatchers("/webjars/**"), permitAll)
                 authorize(pathMatchers("/auth/**"), permitAll)
                 authorize(pathMatchers("/oauth2/**"), permitAll)
-                authorize(pathMatchers("/admin/**"), hasRole("ADMIN"))
+                authorize(pathMatchers("/admin/**"), hasRole(Role.ADMIN.name))
                 authorize(anyExchange, authenticated)
             }
             formLogin { withDefaults() }
