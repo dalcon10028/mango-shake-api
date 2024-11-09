@@ -23,6 +23,7 @@ class UpbitFeignConfig {
     private val errorMap = mapOf(
         "no_authorization_token" to ErrorCode.OPEN_API_AUTH_ERROR,
         "invalid_access_key" to ErrorCode.INVALID_ACCESS_KEY,
+        "invalid_query_payload" to ErrorCode.OPEN_API_AUTH_ERROR,
         "too_many_requests" to ErrorCode.TOO_MANY_REQUESTS,
         "no_authorization_ip" to ErrorCode.OPEN_API_AUTH_ERROR,
         "404" to ErrorCode.CODE_NOT_FOUND,

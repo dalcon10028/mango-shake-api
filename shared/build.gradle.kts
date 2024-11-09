@@ -32,6 +32,8 @@ dependencies {
     implementation("com.slack.api:slack-api-model-kotlin-extension:$slackVersion")
     implementation("com.slack.api:slack-api-client-kotlin-extension:$slackVersion")
 
+    // gson
+    implementation("com.google.code.gson:gson:2.11.0")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
