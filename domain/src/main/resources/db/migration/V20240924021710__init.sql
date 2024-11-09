@@ -21,13 +21,25 @@ create table if not exists ticker_symbol (
     created_at timestamp not null default current_timestamp
 );
 
-insert into ticker_symbol (symbol, base_currency, name, market) values ('SOL', 'KRW', 'Solana', 'CRYPTO_CURRENCY');
-insert into ticker_symbol (symbol, base_currency, name, market) values ('BTC', 'KRW', 'Bitcoin', 'CRYPTO_CURRENCY');
-insert into ticker_symbol (symbol, base_currency, name, market) values ('ETH', 'KRW', 'Ethereum', 'CRYPTO_CURRENCY');
-insert into ticker_symbol (symbol, base_currency, name, market) values ('USDT', 'KRW', 'Tether USDt', 'CRYPTO_CURRENCY');
+insert into ticker_symbol (symbol, base_currency, name, market) values ('SOL','KRW','Solana','CRYPTO_CURRENCY');
+insert into ticker_symbol (symbol, base_currency, name, market) values ('BTC','KRW','Bitcoin','CRYPTO_CURRENCY');
+insert into ticker_symbol (symbol, base_currency, name, market) values ('ETH','KRW','Ethereum','CRYPTO_CURRENCY');
+insert into ticker_symbol (symbol, base_currency, name, market) values ('AVAX','KRW','Avalanche','CRYPTO_CURRENCY');
+insert into ticker_symbol (symbol, base_currency, name, market) values ('SUI','KRW','Sui','CRYPTO_CURRENCY');
+insert into ticker_symbol (symbol, base_currency, name, market) values ('DOGE','KRW','Dogecoin','CRYPTO_CURRENCY');
+insert into ticker_symbol (symbol, base_currency, name, market) values ('USDC','KRW','USDC','CRYPTO_CURRENCY');
+insert into ticker_symbol (symbol, base_currency, name, market) values ('XRP','KRW','Ripple','CRYPTO_CURRENCY');
+insert into ticker_symbol (symbol, base_currency, name, market) values ('TRX','KRW','TRON','CRYPTO_CURRENCY');
+insert into ticker_symbol (symbol, base_currency, name, market) values ('TON','KRW','Toncoin','CRYPTO_CURRENCY');
+insert into ticker_symbol (symbol, base_currency, name, market) values ('ADA','KRW','Cardano','CRYPTO_CURRENCY');
+insert into ticker_symbol (symbol, base_currency, name, market) values ('SHIB','KRW','Shiba' 'Inu,CRYPTO_CURRENCY');
+insert into ticker_symbol (symbol, base_currency, name, market) values ('LINK','KRW','Chainlink','CRYPTO_CURRENCY');
+insert into ticker_symbol (symbol, base_currency, name, market) values ('BCH','KRW','Bitcoin' 'Cash,CRYPTO_CURRENCY');
+insert into ticker_symbol (symbol, base_currency, name, market) values ('DOT','KRW','Polkadot','CRYPTO_CURRENCY');
 
 create table if not exists wallet (
     id serial primary key,
+    uid int not null,
     api_provider varchar(30) not null,
     status varchar(30) not null default 'ACTIVE',
     app_key varchar(255) not null,
@@ -56,6 +68,7 @@ create table if not exists wallet_security (
 
 create table if not exists wallet_snapshot (
     id serial primary key,
+    uid int not null,
     wallet_id int not null,
     base_date date not null,
     beginning_assets decimal(32, 8) not null default 0,

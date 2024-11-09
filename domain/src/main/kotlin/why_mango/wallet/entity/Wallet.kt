@@ -15,6 +15,9 @@ class Wallet (
     @Column("id")
     val id: Long? = null,
 
+    @Column("uid")
+    val uid: Long,
+
     @Column("api_provider")
     val apiProvider: ApiProvider,
 

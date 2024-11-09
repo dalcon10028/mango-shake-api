@@ -5,6 +5,7 @@ import java.time.LocalDate
 
 fun WalletCreate.toEntity(): Wallet {
     return Wallet(
+        uid = this.uid,
         apiProvider = this.apiProvider,
         appKey = this.appKey,
         appSecret = this.appSecret,
@@ -34,6 +35,7 @@ fun Wallet.toModel(securities: Map<String, WalletSecurityModel>?): WalletModel {
     assert(this.createdAt != null)
     return WalletModel(
         id = this.id!!,
+        uid = this.uid,
         apiProvider = this.apiProvider,
         status = this.status,
         appKey = this.appKey,
@@ -53,6 +55,7 @@ fun Wallet.toModel(securities: Map<String, WalletSecurityModel>?): WalletModel {
 fun WalletModel.toSnapshot(baseDate: LocalDate): WalletSnapshot {
     return WalletSnapshot(
         walletId = this.id,
+        uid = this.uid,
         baseDate = baseDate,
         beginningAssets = this.beginningAssets,
         endingAssets = this.endingAssets,

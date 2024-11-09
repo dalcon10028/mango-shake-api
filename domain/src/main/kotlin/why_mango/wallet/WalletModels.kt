@@ -10,6 +10,7 @@ import java.time.LocalDateTime
 
 @Serializable
 data class WalletCreate(
+    val uid: Long,
     val apiProvider: ApiProvider,
     val appKey: String,
     val appSecret: String,
@@ -23,6 +24,7 @@ data class WalletCreate(
 
 data class WalletModel(
     val id: Long,
+    val uid: Long,
     val apiProvider: ApiProvider,
     val status: Status,
     val appKey: String,

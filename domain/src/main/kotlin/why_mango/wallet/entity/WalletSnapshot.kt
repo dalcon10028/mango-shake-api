@@ -12,6 +12,9 @@ class WalletSnapshot (
     @Column("id")
     val id: Long? = null,
 
+    @Column("uid")
+    val uid: Long,
+
     @Column("wallet_id")
     val walletId: Long,
 
