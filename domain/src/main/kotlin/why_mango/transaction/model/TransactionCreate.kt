@@ -1,10 +1,11 @@
-package why_mango.transaction
+package why_mango.transaction.model
 
 import why_mango.transaction.enums.TransactionType
 import java.math.BigDecimal
-import java.time.*
+import java.time.LocalDate
+import java.time.LocalDateTime
 
-data class TransactionCreate(
+abstract class TransactionCreate(
     val walletId: Long,
     val date: LocalDate,
     val sequence: Long,

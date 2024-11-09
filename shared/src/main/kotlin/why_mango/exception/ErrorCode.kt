@@ -14,7 +14,7 @@ enum class ErrorCode(val status: HttpStatus) {
 
     // market_broker
     OPEN_API_AUTH_ERROR(UNAUTHORIZED),
-    INVALID_ACCESS_KEY(UNAUTHORIZED),
+    INVALID_ACCESS_KEY(UNAUTHORIZED), // wallet 폐기 필요
     UPBIT_ERROR(INTERNAL_SERVER_ERROR),
     CODE_NOT_FOUND(NOT_FOUND),
     TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS),

@@ -16,7 +16,4 @@ class UpbitTransactionService(
 
     override suspend fun find(walletId: Long): Flow<Transaction> =
         transactionRepository.findByWalletId(walletId)
-
-    override suspend fun create(transaction: TransactionCreate): Transaction =
-        transactionRepository.save(transaction.toEntity())
 }

@@ -1,6 +1,6 @@
 package why_mango.transaction
 
-import why_mango.transaction.*
+import why_mango.transaction.model.*
 import why_mango.transaction.entity.Transaction
 
 fun TransactionCreate.toEntity(): Transaction {

@@ -16,7 +16,7 @@ data class OrderOpenQuery(
     val market: String,
 
     /* 주문 상태 */
-    val state: String?,
+    val state: String? = null,
 
     /* 주문 상태의 목록 */
     val states: List<String>? = listOf("wait", "watch"),

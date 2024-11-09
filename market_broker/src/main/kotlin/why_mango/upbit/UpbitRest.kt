@@ -22,19 +22,19 @@ interface UpbitRest {
      * id로 주문리스트 조회
      */
     @RequestLine("GET /orders/uuids")
-    suspend fun getOrders(@QueryMap query: OrderStatusQuery): List<OrderStatusResponse>
+    suspend fun getOrders(@Param token: String, @QueryMap query: OrderStatusQuery): List<OrderStatusResponse>
 
     /**
      * 체결 대기 주문 (Open Order) 조회
      */
     @RequestLine("GET /orders/open")
-    suspend fun getOpenOrders(@QueryMap query: OrderOpenQuery): List<OrderOpenResponse>
+    suspend fun getOpenOrders(@Param token: String, @QueryMap query: OrderOpenQuery): List<OrderOpenResponse>
 
     /**
      * 종료된 주문 (Closed Order) 조회
      */
     @RequestLine("GET /orders/closed")
-    suspend fun getClosedOrders(@QueryMap query: OrderClosedQuery): List<OrderClosedResponse>
+    suspend fun getClosedOrders(@Param token: String, @QueryMap query: OrderClosedQuery): List<OrderClosedResponse>
 
     /**
      * 주문하기

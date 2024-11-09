@@ -8,6 +8,4 @@ interface TransactionService {
     val apiProvider: ApiProvider
 
     suspend fun find(walletId: Long): Flow<Transaction>
-
-    suspend fun create(transaction: TransactionCreate): Transaction
 }
