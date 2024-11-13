@@ -3,12 +3,11 @@ package why_mango.order.entity
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.*
-import why_mango.upbit.enums.OrderType
-import why_mango.upbit.enums.Side
+import why_mango.upbit.enums.*
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
-@Table
+@Table("order_status_upbit")
 class OrderStatus(
     @Id
     val id: Long? = null,
@@ -26,7 +25,7 @@ class OrderStatus(
     val orderType: OrderType,
 
     @Column("price")
-    val price: BigDecimal,
+    val price: BigDecimal?,
 
     @Column("status")
     val status: String,
@@ -38,10 +37,10 @@ class OrderStatus(
     val orderedAt: LocalDateTime,
 
     @Column("volume")
-    val volume: BigDecimal,
+    val volume: BigDecimal?,
 
     @Column("remaining_volume")
-    val remainingVolume: BigDecimal,
+    val remainingVolume: BigDecimal?,
 
     @Column("reserved_fee")
     val reservedFee: BigDecimal,
@@ -65,7 +64,7 @@ class OrderStatus(
     val tradesCount: Int,
 
     @Column("time_in_force")
-    val timeInForce: String? = null,
+    val timeInForce: TimeInForce? = null,
 
     @CreatedDate
     @Column("created_at")

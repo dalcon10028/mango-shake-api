@@ -7,11 +7,17 @@ import org.springframework.stereotype.Component
 import java.time.LocalDate
 import why_mango.enums.*
 import kotlinx.coroutines.flow.*
+import org.springframework.context.ApplicationEventPublisher
+import why_mango.component.slack.Color
+import why_mango.component.slack.Field
+import why_mango.component.slack.SlackEvent
+import why_mango.component.slack.Topic
 import why_mango.wallet.WalletFactory
 import why_mango.wallet.WalletService
 
 @Component
 class WalletSyncScheduler(
+    private val publisher: ApplicationEventPublisher,
     private val walletFactory: WalletFactory,
     private val walletService: WalletService,
 ) {
@@ -41,6 +47,16 @@ class WalletSyncScheduler(
 
         } catch (e: Exception) {
             logger.error { e }
+            publisher.publishEvent(
+                SlackEvent(
+                    topic = Topic.ERROR,
+                    title = "Ohlcv day error",
+                    color = Color.DANGER,
+                    fields = listOf(
+                        Field("Error", e.localizedMessage ?: "Unknown error")
+                    )
+                )
+            )
         }
     }
 }

@@ -1,5 +1,9 @@
 package why_mango.enums
 
-enum class Side {
-    BID, ASK
+import kotlinx.serialization.*
+
+@Serializable
+enum class Side{
+    @SerialName("bid") BID,
+    @SerialName("ask") ASK,
 }

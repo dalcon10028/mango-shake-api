@@ -1,7 +1,11 @@
 package why_mango.component.slack
 
 import com.slack.api.Slack
+import com.slack.api.model.Attachment
 import com.slack.api.model.Attachments.attachment
+import com.slack.api.model.Message
+import com.slack.api.model.block.Blocks.section
+import com.slack.api.model.kotlin_extension.block.withBlocks
 import com.slack.api.webhook.Payload
 import com.slack.api.webhook.WebhookPayloads.*
 import kotlinx.coroutines.CoroutineScope
@@ -49,7 +53,7 @@ class SlackEventListener(
                     .pretext(event.title)
                     .title(event.title)
                     .color(event.color.value)
-                    .fields(event.fields)
+                    .fields(event.fields.map { it.toField() })
                 })
             )
         }

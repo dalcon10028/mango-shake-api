@@ -6,6 +6,7 @@ import why_mango.serializer.BigDecimalSerializer
 import why_mango.serializer.DateTimeSerializer
 import why_mango.upbit.enums.OrderType
 import why_mango.upbit.enums.Side
+import why_mango.upbit.enums.TimeInForce
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -19,17 +20,16 @@ data class OrderOpenQuery(
     val state: String? = null,
 
     /* 주문 상태의 목록 */
-    val states: List<String>? = listOf("wait", "watch"),
+    val states: List<String>? = null,
 
     /* 페이지 수, default: 1 */
     val page: Int? = null,
 
     /* 요청 개수, default: 100, max: 100 */
-    val limit: Int? = 100,
+    val limit: String = "100",
 
     /* 정렬 방식 */
-    @Param("order_by")
-    val orderBy: String? = "desc"
+    val order_by: String? = "desc"
 )
 
 @Serializable
@@ -93,5 +93,5 @@ data class OrderOpenResponse(
     val tradesCount: Int,
 
     /* IOC, FOK 설정 */
-    val timeInForce: String? = null,
+    val timeInForce: TimeInForce? = null,
 )

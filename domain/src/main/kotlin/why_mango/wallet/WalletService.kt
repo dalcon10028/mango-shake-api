@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional
 import why_mango.enums.ApiProvider
 import why_mango.exception.ErrorCode
 import why_mango.exception.MangoShakeException
+import why_mango.wallet.enums.Status
 import why_mango.wallet.repository.*
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -25,6 +26,10 @@ abstract class WalletService(
             val securities = walletSecurityRepository.findByWalletId(wallet.id!!)
             wallet.toModel(securities.map { it.toModel() }.toList().associateBy { it.symbol })
         }
+
+    @Transactional(readOnly = true)
+    suspend fun getWalletsWithoutSecurities(status: Status): Flow<WalletModel> =
+        walletRepository.findByStatus(status).map { wallet -> wallet.toModel(emptyMap()) }
 
     @Transactional(readOnly = true)
     suspend fun getWalletsWithoutSecurities(provider: ApiProvider): Flow<WalletModel> =

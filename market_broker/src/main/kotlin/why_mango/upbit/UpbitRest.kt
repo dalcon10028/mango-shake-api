@@ -34,7 +34,10 @@ interface UpbitRest {
      * 종료된 주문 (Closed Order) 조회
      */
     @RequestLine("GET /orders/closed")
-    suspend fun getClosedOrders(@Param token: String, @QueryMap query: OrderClosedQuery): List<OrderClosedResponse>
+    suspend fun getClosedOrders(
+        @Param token: String,
+        @QueryMap query: OrderClosedQuery
+    ): List<OrderClosedResponse>
 
     /**
      * 주문하기

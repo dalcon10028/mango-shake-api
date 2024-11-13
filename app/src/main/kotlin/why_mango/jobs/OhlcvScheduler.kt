@@ -11,10 +11,16 @@ import why_mango.ohlcv.OhlcvDayService
 import java.time.LocalDate
 import why_mango.enums.*
 import kotlinx.coroutines.flow.*
+import org.springframework.context.ApplicationEventPublisher
+import why_mango.component.slack.Color
+import why_mango.component.slack.Field
+import why_mango.component.slack.SlackEvent
+import why_mango.component.slack.Topic
 import why_mango.ticker_symbol.TickerSymbolService
 
 @Component
 class OhlcvScheduler(
+    private val publisher: ApplicationEventPublisher,
     private val ohlcvDayService: OhlcvDayService,
     private val tickerSymbolService: TickerSymbolService,
     private val candleServiceFactory: CandleServiceFactory,
@@ -58,6 +64,15 @@ class OhlcvScheduler(
 
         } catch (e: Exception) {
             logger.error { e }
+            publisher.publishEvent(
+                SlackEvent(
+                topic = Topic.ERROR,
+                title = "Ohlcv day error",
+                color = Color.DANGER,
+                fields = listOf(
+                    Field("Error", e.localizedMessage ?: "Unknown error")
+                )
+            ))
         }
     }
 }
