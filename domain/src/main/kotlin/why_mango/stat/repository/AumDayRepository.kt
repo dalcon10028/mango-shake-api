@@ -12,10 +12,10 @@ interface AumDayRepository : CoroutineCrudRepository<AumDay, Long> {
 
     @Query("""
         SELECT 
-            a.base_date,
+            a.base_date AS date,
             SUM(
                 (a.balance + a.locked) * CASE WHEN a.symbol = 'KRW' THEN 1 ELSE b.close END
-            ) AS asset_valuation
+            ) AS amount
         FROM wallet_security_snapshot a LEFT JOIN ohlcv_day b
             ON a.symbol = b.symbol AND a.base_date = b.base_date
         WHERE a.base_date BETWEEN :startDate AND :endDate 

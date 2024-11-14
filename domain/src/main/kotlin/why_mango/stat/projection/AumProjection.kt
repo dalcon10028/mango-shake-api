@@ -4,6 +4,6 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 data class AumProjection(
-    val baseDate: LocalDate,
-    val assetValuation: BigDecimal
+    val date: LocalDate,
+    val amount: BigDecimal
 )
