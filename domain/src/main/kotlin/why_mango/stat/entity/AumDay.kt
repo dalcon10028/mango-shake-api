@@ -1,28 +1,26 @@
-package why_mango.ticker_symbol.entity
+package why_mango.stat.entity
 
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
 import why_mango.enums.*
-import java.time.LocalDateTime
+import java.time.*
 
-@Table("ticker_symbol")
-class TickerSymbol (
+@Table("aum_day")
+class AumDay(
     @Id
+    @Column("id")
     val id: Long? = null,
 
-    @Column("symbol")
-    val symbol: String,
+    @Column("base_date")
+    val baseDate: LocalDate,
 
-    @Column("base_currency")
-    val baseCurrency: Currency,
+    @Column("currency")
+    val currency: Currency,
 
-    @Column("name")
-    val name: String,
-
-    @Column("market")
-    val market: AssetType,
+    @Column("asset_type")
+    val assetType: AssetType,
 
     @CreatedDate
     @Column("created_at")

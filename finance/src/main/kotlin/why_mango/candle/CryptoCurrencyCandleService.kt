@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.map
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.stereotype.Service
 import why_mango.enums.Currency
-import why_mango.enums.Market
+import why_mango.enums.AssetType
 import why_mango.upbit.UpbitRest
 import why_mango.upbit.dto.CandleDayQuary
 import why_mango.utils.between
@@ -22,7 +22,7 @@ class CryptoCurrencyCandleService(
     private val upbitRest: UpbitRest,
     private val upbitProperties: UpbitProperties,
 ) : CandleService {
-    override val market: Market = Market.CRYPTO_CURRENCY
+    override val market: AssetType = AssetType.CRYPTO_CURRENCY
 
     override suspend fun getDayCandles(symbol: String, baseCurrency: Currency, startDate: LocalDate, endDate: LocalDate): Flow<DayCandleModel> {
         val query = CandleDayQuary(market = "${baseCurrency}-${symbol}")

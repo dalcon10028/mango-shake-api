@@ -9,7 +9,7 @@ data class TickerSymbolCreate(
     val symbol: String,
     val baseCurrency: Currency,
     val name: String,
-    val market: Market,
+    val market: AssetType,
 )
 
 data class TickerSymbolModel(
@@ -17,6 +17,6 @@ data class TickerSymbolModel(
     val symbol: String,
     val name: String,
     val baseCurrency: Currency,
-    val market: Market,
+    val market: AssetType,
     val createdAt: LocalDateTime,
 )

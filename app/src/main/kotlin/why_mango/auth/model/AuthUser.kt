@@ -25,7 +25,10 @@ class AuthUser(
     override fun getUsername(): String = username
 
     override fun getAuthorities(): MutableCollection<out GrantedAuthority> = mutableListOf<GrantedAuthority>().apply {
-        role?.let { add(GrantedAuthority { "ROLE_${it.name}" }) }
+        role?.privileges?.map {
+            add(GrantedAuthority { "ROLE_${it.name}" })
+        }
+        role?.let { add(GrantedAuthority { "ROLE_${role.name}" }) }
     }
 
     companion object {

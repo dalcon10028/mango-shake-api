@@ -91,3 +91,14 @@ create table if not exists wallet_security_snapshot (
     average_buy_price decimal(32, 8) not null,
     created_at timestamp not null default current_timestamp
 );
+
+
+create table if not exists aum_day (
+    id serial primary key,
+    base_date date not null,
+    currency varchar(10) not null,
+    asset_type varchar(30) not null,
+    created_at timestamp not null default current_timestamp,
+
+    constraint aum_day_base_date_currency_asset_type_key unique (base_date, currency, asset_type)
+);
