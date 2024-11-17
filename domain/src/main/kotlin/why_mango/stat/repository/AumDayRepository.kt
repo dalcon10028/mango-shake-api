@@ -19,8 +19,8 @@ interface AumDayRepository : CoroutineCrudRepository<AumDay, Long> {
         FROM wallet_security_snapshot a LEFT JOIN ohlcv_day b
             ON a.symbol = b.symbol AND a.base_date = b.base_date
         WHERE a.base_date BETWEEN :startDate AND :endDate 
-        GROUP BY a.wallet_id, a.base_date
-        ORDER BY a.wallet_id, a.base_date DESC 
+        GROUP BY a.base_date
+        ORDER BY a.base_date ASC 
     """)
     suspend fun findWalletSnapshotAum(startDate: LocalDate, endDate: LocalDate): Flow<AumProjection>
 }
