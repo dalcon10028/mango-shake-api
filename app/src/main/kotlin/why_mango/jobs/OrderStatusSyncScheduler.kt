@@ -43,26 +43,30 @@ class OrderStatusSyncScheduler(
 
             walletService.getWalletsWithoutSecurities(Status.ACTIVE)
                 .onEach { delay(100) }
-                .flatMapMerge { wallet ->
+                .onEach { wallet ->
                     flowOf(
                         marketBrokerService.getClosedOrderStatus(wallet.id, startDate = startDate).map { OrderStatusSave.from(it, wallet.id) },
                         marketBrokerService.getOpenOrderStatus(wallet.id).map { OrderStatusSave.from(it, wallet.id) }
                     )
+                        .flattenMerge()
+                        .onEach { orderService.saveOrderStatuses(wallet.id, flowOf(it)) }
+
                 }
-                .onEach { orderService.saveOrderStatuses(it) }
                 .collect { logger.info { "Sync wallet: $it" } }
 
         } catch (e: Exception) {
-            logger.error { e }
+            logger.error(e) { "Order status sync error" }
 
-            publisher.publishEvent(SlackEvent(
-                topic = Topic.ERROR,
-                title = "Order status sync error",
-                color = Color.DANGER,
-                fields = listOf(
-                    Field("Error", e.localizedMessage ?: "Unknown error")
+            publisher.publishEvent(
+                SlackEvent(
+                    topic = Topic.ERROR,
+                    title = "Order status sync error",
+                    color = Color.DANGER,
+                    fields = listOf(
+                        Field("Error", e.localizedMessage ?: "Unknown error")
+                    )
                 )
-            ))
+            )
         }
     }
 }

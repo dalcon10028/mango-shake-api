@@ -63,7 +63,7 @@ class OhlcvScheduler(
                 .collect { ohlcvDayService.createOhlcvDay(it) }
 
         } catch (e: Exception) {
-            logger.error { e }
+            logger.error(e) { "Ohlcv day error" }
             publisher.publishEvent(
                 SlackEvent(
                 topic = Topic.ERROR,

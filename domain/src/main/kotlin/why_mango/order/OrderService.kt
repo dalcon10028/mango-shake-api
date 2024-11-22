@@ -12,8 +12,8 @@ class OrderService(
 ) {
     suspend fun getOrderStatus(walletId: Long) = orderStatusRepository.findByWalletId(walletId)
 
-    suspend fun saveOrderStatuses(orderStatuses: Flow<OrderStatusSave>) {
-        val orderStatusUuidSet: Set<String> = orderStatusRepository.findByWalletId(orderStatuses.first().walletId)
+    suspend fun saveOrderStatuses(walletId: Long, orderStatuses: Flow<OrderStatusSave>) {
+        val orderStatusUuidSet: Set<String> = orderStatusRepository.findByWalletId(walletId)
             .map { it.uuid }
             .toSet()
 

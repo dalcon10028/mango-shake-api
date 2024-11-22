@@ -46,7 +46,7 @@ class WalletSyncScheduler(
                 .collect { logger.info { "Sync wallet: $it" } }
 
         } catch (e: Exception) {
-            logger.error { e }
+            logger.error(e) { "Wallet sync error" }
             publisher.publishEvent(
                 SlackEvent(
                     topic = Topic.ERROR,
