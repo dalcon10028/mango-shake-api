@@ -26,6 +26,7 @@ dependencies {
     implementation("io.github.openfeign:feign-hc5:13.4")
     implementation("io.github.openfeign:feign-kotlin:13.4")
     implementation("io.github.openfeign:feign-slf4j:9.3.1")
+    implementation("io.github.openfeign:feign-gson:9.4.0")
     implementation("com.auth0:java-jwt:4.4.0")
 //    implementation("org.springframework.boot:spring-boot-starter-cache")
 //    implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j")

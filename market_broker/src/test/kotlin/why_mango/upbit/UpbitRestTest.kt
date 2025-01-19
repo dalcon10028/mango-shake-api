@@ -17,7 +17,9 @@ import why_mango.upbit.enums.Side
 import java.math.BigDecimal
 import java.util.UUID
 
-@SpringBootTest
+@SpringBootTest(
+    classes = [UpbitRest::class, UpbitFeignConfig::class]
+)
 class UpbitRestTest(
     private val upbitRest: UpbitRest
 ) : FunSpec({

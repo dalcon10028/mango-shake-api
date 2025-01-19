@@ -1,7 +1,6 @@
 package why_mango.upbit
 
 import feign.*
-import org.springframework.web.bind.annotation.RequestHeader
 import why_mango.upbit.dto.*
 
 @Headers("Authorization: {token}")
@@ -55,5 +54,5 @@ interface UpbitRest {
      * 일(Day) 캔들
      */
     @RequestLine("GET /candles/days")
-    suspend fun getCandleDay(@Param token: String, @QueryMap query: CandleDayQuary): List<CandleDayResponse>
+    suspend fun getCandleDay(@Param token: String, @QueryMap query: CandleDayQuery): List<CandleDayResponse>
 }

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service
 import why_mango.enums.Currency
 import why_mango.enums.AssetType
 import why_mango.upbit.UpbitRest
-import why_mango.upbit.dto.CandleDayQuary
+import why_mango.upbit.dto.CandleDayQuery
 import why_mango.utils.between
 import java.time.LocalDate
 
@@ -25,7 +25,7 @@ class CryptoCurrencyCandleService(
     override val market: AssetType = AssetType.CRYPTO_CURRENCY
 
     override suspend fun getDayCandles(symbol: String, baseCurrency: Currency, startDate: LocalDate, endDate: LocalDate): Flow<DayCandleModel> {
-        val query = CandleDayQuary(market = "${baseCurrency}-${symbol}")
+        val query = CandleDayQuery(market = "${baseCurrency}-${symbol}")
         return upbitRest.getCandleDay(generateToken(), query)
             .asFlow().map { it.toModel() }.filter { it.baseDate.between(startDate, endDate) }
     }

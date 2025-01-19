@@ -4,8 +4,6 @@ import kotlinx.serialization.Serializable
 import why_mango.enums.Currency
 import why_mango.serializer.BigDecimalSerializer
 import why_mango.serializer.DateTimeSerializer
-import why_mango.upbit.enums.OrderType
-import why_mango.upbit.enums.Side
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -20,7 +18,7 @@ import java.time.LocalDateTime
  * convertingPriceUnit	종가 환산 화폐 단위 (생략 가능, KRW로 명시할 시 원화 환산 가격을 반환.)	String
  */
 
-data class CandleDayQuary(
+data class CandleDayQuery(
     /* 마켓 코드 (ex. KRW-BTC) */
     val market: String,
 
