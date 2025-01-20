@@ -1,4 +1,4 @@
-package why_mango.serializer
+package why_mango.serialization.kserialization.serializer
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.*
