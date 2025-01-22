@@ -1,85 +1,84 @@
 package why_mango.bitget
 
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import feign.*
 import feign.codec.*
+import feign.gson.GsonDecoder
+import feign.gson.GsonEncoder
 import feign.kotlin.CoroutineFeign
 import feign.slf4j.Slf4jLogger
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonNamingStrategy
-import kotlinx.serialization.serializer
+import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import why_mango.dto.BaseDto
-import why_mango.exception.ErrorCode
-import why_mango.exception.MangoShakeException
-import why_mango.upbit.dto.UpbitErrorResponse
-import java.lang.reflect.Type
+import why_mango.bitget.dto.BitgetResponse
+import why_mango.bitget.exception.BitgetException
+import why_mango.serialization.gson.NumberStringSerializer
+import java.math.BigDecimal
+
 import java.nio.charset.StandardCharsets
+import java.util.*
+import javax.crypto.Mac
+import javax.crypto.spec.SecretKeySpec
 
 @Configuration
-class BitgetFeignConfig {
-    private val gson: Gson = Gson()
-    private val baseUrl = "https://api.bitget.com"
-//    private val errorMap = emptyMap()
+class BitgetFeignConfig(
+    private val bitgetProperties: BitgetProperties,
+) {
+    private val gson: Gson = GsonBuilder()
+        .enableComplexMapKeySerialization()
+        .registerTypeAdapter(BigDecimal::class.java, NumberStringSerializer)
+        .create()
+    private val mac: Mac = Mac.getInstance("HmacSHA256")
 
     @Bean
     fun bitgetRest(): BitgetRest = CoroutineFeign.builder<Void>()
-        .decoder(BitgetGsonDecoder(gson))
-        .encoder(encoder())
+        .decoder(GsonDecoder(gson))
+        .encoder(GsonEncoder(gson))
+        .requestInterceptors(listOf(
+            requestInterceptor(),
+        ))
         .logger(Slf4jLogger())
         .errorDecoder(errorDecoder())
         .logLevel(Logger.Level.FULL)
-        .target(BitgetRest::class.java, baseUrl)
+        .target(BitgetRest::class.java, bitgetProperties.baseUrl)
 
-    private fun decoder(): Decoder = Decoder { r: Response, t: Type ->
-        // https://github.com/Kotlin/kotlinx.serialization/blob/master/docs/serialization-guide.md
-        @OptIn(ExperimentalSerializationApi::class)
-        val format = Json {
-            namingStrategy = JsonNamingStrategy.SnakeCase
-            isLenient = true
-        }
-
-        val serializer = format.serializersModule.serializer(t)
-        val body = r.body().asReader(r.charset()).use { it.readText() }
-        format.decodeFromString(serializer, body)
-    }
-
-    private fun encoder(): Encoder = Encoder { o: Any, _: Type, t: RequestTemplate ->
-        @OptIn(ExperimentalSerializationApi::class)
-        val format = Json {
-            namingStrategy = JsonNamingStrategy.SnakeCase
-            decodeEnumsCaseInsensitive = true
-            explicitNulls = false
-        }
-        if (o is BaseDto) {
-            t.body(format.encodeToString(o))
-        } else {
-            throw MangoShakeException(ErrorCode.UPBIT_ERROR, "BaseDto를 상속받은 클래스만 사용 가능합니다.")
-        }
+    private fun requestInterceptor(): RequestInterceptor = RequestInterceptor { template ->
+        val timestamp = System.currentTimeMillis().toString()
+        template.header("Content-Type", "application/json")
+        template.header("Accept", "application/json")
+        template.header("locale", "ko-KR")
+        template.header("ACCESS-KEY", bitgetProperties.accessKey)
+        template.header("ACCESS-PASSPHRASE", bitgetProperties.passphrase)
+        template.header("ACCESS-TIMESTAMP", timestamp)
+        template.header("ACCESS-SIGN", generateSignature(timestamp, template.method(), template.path(), template.queryLine(), template.body()?.toString()))
     }
 
     fun errorDecoder(): ErrorDecoder = ErrorDecoder { _: String, r: Response ->
         val response = r.body().asReader(StandardCharsets.UTF_8).use { it.readText() }
 
-        val (upbitError) = try {
-            @OptIn(ExperimentalSerializationApi::class)
-            val format = Json {
-                namingStrategy = JsonNamingStrategy.SnakeCase
-                isLenient = true
-                explicitNulls = false
-            }
-            format.decodeFromString<UpbitErrorResponse>(response)
+        val bitgetError: BitgetResponse<*> = try {
+            gson.fromJson(response, BitgetResponse::class.java)
         } catch (e: Exception) {
-            throw MangoShakeException(ErrorCode.UPBIT_ERROR, response)
+            throw BitgetException(response)
         }
 
-        throw MangoShakeException(ErrorCode.UPBIT_ERROR, "[${upbitError.name}] ${upbitError.message ?: ""}")
-//        throw MangoShakeException(
-//            errorCode = errorMap[upbitError.name] ?: ErrorCode.UPBIT_ERROR, "[${upbitError.name}] ${upbitError.message ?: ""}",
-//            data = mapOf("requestUrl" to r.request().url())
-//        )
+        throw BitgetException(bitgetError)
     }
+
+    private fun generateSignature(timestamp: String, method: String, requestPath: String, queryString: String, body: String?): String {
+        val preHash = "$timestamp$method$requestPath$queryString${body ?: ""}"
+        val secretKeyBytes = bitgetProperties.secretKey.toByteArray(charset("UTF-8"))
+        val secretKeySpec = SecretKeySpec(secretKeyBytes, "HmacSHA256")
+        mac.init(secretKeySpec)
+        return Base64.getEncoder().encodeToString(mac.doFinal(preHash.toByteArray(charset("UTF-8"))))
+    }
+
+    @ConfigurationProperties(prefix = "bitget")
+    data class BitgetProperties(
+        val baseUrl: String,
+        val passphrase: String,
+        val accessKey: String,
+        val secretKey: String,
+    )
 }

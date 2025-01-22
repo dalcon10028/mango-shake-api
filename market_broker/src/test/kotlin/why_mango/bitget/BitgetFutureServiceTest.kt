@@ -2,12 +2,8 @@ package why_mango.bitget
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldHave
-import io.kotest.matchers.shouldNotBe
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.toList
 import org.springframework.boot.test.context.SpringBootTest
-import why_mango.bitget.dto.history_candle_stick.HistoryCandlestickQuery
+import why_mango.bitget.dto.market.HistoryCandlestickQuery
 import why_mango.bitget.enums.Granularity
 
 @SpringBootTest(

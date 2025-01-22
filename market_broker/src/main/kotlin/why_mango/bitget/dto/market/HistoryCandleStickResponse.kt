@@ -1,4 +1,4 @@
-package why_mango.bitget.dto.history_candle_stick
+package why_mango.bitget.dto.market
 
 import java.math.BigDecimal
 

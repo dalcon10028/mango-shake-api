@@ -5,7 +5,6 @@ import com.google.gson.reflect.TypeToken
 import feign.Response
 import feign.codec.Decoder
 import java.io.InputStreamReader
-import java.io.Reader
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 

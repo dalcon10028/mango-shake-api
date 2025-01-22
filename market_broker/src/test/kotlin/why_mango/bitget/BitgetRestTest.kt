@@ -7,8 +7,9 @@ import io.kotest.extensions.wiremock.ListenerMode
 import io.kotest.extensions.wiremock.WireMockListener
 import io.kotest.matchers.*
 import org.springframework.boot.test.context.SpringBootTest
-import why_mango.bitget.dto.history_candle_stick.HistoryCandlestickQuery
-import why_mango.bitget.enums.Granularity
+import why_mango.bitget.dto.market.HistoryCandlestickQuery
+import why_mango.bitget.dto.position.AllPositionsQuery
+import why_mango.bitget.enums.*
 
 @SpringBootTest(
     classes = [BitgetRest::class, BitgetFeignConfig::class]
@@ -59,4 +60,32 @@ class BitgetRestTest(
         historyCandlestick.requestTime shouldBe 1737292876442
         historyCandlestick.data.size shouldBe 10
     }
+
+    test("getAllPositions") {
+        // {"code":"00000","msg":"success","requestTime":1737339766320,"data":[{"marginCoin":"SUSDT","symbol":"SBTCSUSDT","holdSide":"long","openDelegateSize":"0","marginSize":"161.56128","available":"0.016","locked":"0","total":"0.016","leverage":"10","achievedProfits":"0","openPriceAvg":"100975.8","marginMode":"isolated","posMode":"hedge_mode","unrealizedPL":"5.3536","liquidationPrice":"91279.851345922058","keepMarginRate":"0.004","markPrice":"101310.4","marginRatio":"0.04272987621","breakEvenPrice":"101036.409723889556","totalFee":"","deductedFee":"0.32312256","grant":"","assetMode":"single","autoMargin":"off","takeProfit":"","stopLoss":"","takeProfitId":"","stopLossId":"","cTime":"1737339040134","uTime":"1737339040134"}]}
+        val query = AllPositionsQuery(
+            productType = ProductType.SUSDT_FUTURES,
+        )
+        val response = bitgetRest.getAllPositions(query)
+
+        println(response)
+    }
+
+//    test("placeOrder") {
+//        val body = PlaceOrderRequest(
+//            symbol = "BTCUSDT",
+//            marginCoin = "USDT",
+//            size = BigDecimal("0.1"),
+//            productType = ProductType.USDT_FUTURES,
+//            side = Side.SELL,
+//            orderType = OrderType.LIMIT,
+//            tradeSide = TradeType.OPEN,
+//            marginMode = MarginMode.ISOLATED,
+//            presetStopSurplusPrice = BigDecimal("2000"),
+//            presetStopLossPrice = BigDecimal("1900"),
+//        )
+//        val order = bitgetRest.placeOrder(body)
+//
+//        println(order)
+//    }
 })

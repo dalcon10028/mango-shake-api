@@ -2,7 +2,7 @@ package why_mango.upbit.dto
 
 import kotlinx.serialization.Serializable
 import why_mango.enums.Currency
-import why_mango.serializer.BigDecimalSerializer
+import why_mango.serialization.kserialization.serializer.BigDecimalSerializer
 import java.math.BigDecimal
 
 // https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EA%B3%84%EC%A2%8C-%EC%A1%B0%ED%9A%8C

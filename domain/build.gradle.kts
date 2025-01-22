@@ -22,6 +22,9 @@ dependencies {
 	implementation(project(":shared"))
 	implementation(project(":market_broker"))
 
+	// data analysis
+	implementation("org.jetbrains.kotlinx:dataframe:0.15.0")
+
 	implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")

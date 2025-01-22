@@ -2,8 +2,8 @@ package why_mango.upbit.dto
 
 import kotlinx.serialization.Serializable
 import why_mango.dto.BaseDto
-import why_mango.serializer.BigDecimalSerializer
-import why_mango.serializer.DateTimeSerializer
+import why_mango.serialization.kserialization.serializer.BigDecimalSerializer
+import why_mango.serialization.kserialization.serializer.DateTimeSerializer
 import why_mango.upbit.enums.*
 import java.math.BigDecimal
 import java.time.LocalDateTime

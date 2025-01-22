@@ -2,7 +2,7 @@ package why_mango.exception
 
 import org.springframework.http.HttpStatus
 
-class MangoShakeException(
+open class MangoShakeException(
     val errorCode: ErrorCode,
     message: String,
     val status: HttpStatus = errorCode.status,

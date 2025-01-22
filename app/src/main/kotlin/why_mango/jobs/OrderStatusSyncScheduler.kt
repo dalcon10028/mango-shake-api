@@ -33,7 +33,7 @@ class OrderStatusSyncScheduler(
      * 매일 오전 9(utc0)시에 암호화폐 마감
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    @Scheduled(cron = "0 0 1 * * *", zone = "Asia/Seoul")
+//    @Scheduled(cron = "0 0 1 * * *", zone = "Asia/Seoul")
 //    @Scheduled(fixedDelay = 1000 * 60 * 60 * 24)
     suspend fun syncOrderStatus() {
         try {

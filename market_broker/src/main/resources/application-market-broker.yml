@@ -1,0 +1,10 @@
+bitget:
+  base-url: https://api.bitget.com
+  passphrase: ${BITGET_PASSPHRASE}
+  access-key: ${BITGET_ACCESS_KEY}
+  secret-key: ${BITGET_SECRET_KEY}
+
+
+logging:
+  level:
+    feign: debug
