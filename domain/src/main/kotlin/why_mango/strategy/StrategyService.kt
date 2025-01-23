@@ -1,5 +1,6 @@
 package why_mango.strategy
 
+import kotlinx.coroutines.*
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import why_mango.bitget.BitgetFutureService
@@ -23,32 +24,40 @@ class StrategyService(
     private var state: StrategyState = StrategyState.WAITING
     private val symbol = "SXRPSUSDT"
 
-    suspend fun next(time: LocalDateTime) {
+    suspend fun next(time: LocalDateTime) = withContext(Dispatchers.IO) {
         // 홀딩중이면 스킵
-        if (state == StrategyState.HOLDING) return
+        if (state == StrategyState.HOLDING) return@withContext
 
-        val bollingerBand = getCandles(Granularity.THREE_MINUTES).map { it.close }.toList().bollingerBand()
+        val (bollingerBand3m, bollingerBand15m, bollingerBand1h) = awaitAll(
+            async { getCandles(Granularity.THREE_MINUTES).map { it.close }.toList().bollingerBand() },
+            async { getCandles(Granularity.FIFTEEN_MINUTES).map { it.close }.toList().bollingerBand() },
+            async { getCandles(Granularity.ONE_HOUR).map { it.close }.toList().bollingerBand() },
+        )
         val price = getPrice(symbol)
 
         // 시그널체크
-        if (longSignal(price, bollingerBand)) {
-            state = open("long", price, bollingerBand)
-        } else if (shortSignal(price, bollingerBand)) {
-            state = open("short", price, bollingerBand)
+        if (longSignal(price, bollingerBand3m, bollingerBand15m, bollingerBand1h)) {
+            state = open("long", price, bollingerBand3m, bollingerBand15m, bollingerBand1h)
+        } else if (shortSignal(price, bollingerBand3m, bollingerBand15m, bollingerBand1h)) {
+            state = open("short", price, bollingerBand3m, bollingerBand15m, bollingerBand1h)
         }
     }
 
-    fun longSignal(price: BigDecimal, band: BollingerBand): Boolean {
-        val (upper, sma, lower) = band
-        return price < lower
+    fun longSignal(price: BigDecimal, band3m: BollingerBand, band15m: BollingerBand, band1h: BollingerBand): Boolean {
+        val (_, _, lower3m) = band3m
+        val (_, _, lower15m) = band15m
+        val (_, _, lower1h) = band1h
+        return price < lower3m && price < lower15m && price < lower1h
     }
 
-    fun shortSignal(price: BigDecimal, band: BollingerBand): Boolean {
-        val (upper, sma, lower) = band
-        return price > upper
+    fun shortSignal(price: BigDecimal, band3m: BollingerBand, band15m: BollingerBand, band1h: BollingerBand): Boolean {
+        val (_, upper3m, _) = band3m
+        val (_, upper15m, _) = band15m
+        val (_, upper1h, _) = band1h
+        return price > upper3m && price > upper15m && price > upper1h
     }
 
-    fun open(position: String, price: BigDecimal, bands: BollingerBand): StrategyState {
+    fun open(position: String, price: BigDecimal, band3m: BollingerBand, band15m: BollingerBand, band1h: BollingerBand): StrategyState {
         eventPublisher.publishEvent(
             SlackEvent(
                 topic = Topic.NOTIFICATION,
@@ -56,9 +65,9 @@ class StrategyService(
                 color = Color.GOOD,
                 fields = listOf(
                     Field("price", price.toString()),
-                    Field("sma", bands.sma.toString()),
-                    Field("upper", bands.upper.toString()),
-                    Field("lower", bands.lower.toString())
+                    Field("3m", band3m.toString()),
+                    Field("15m", band15m.toString()),
+                    Field("1h", band1h.toString())
                 )
             ))
         return StrategyState.HOLDING
@@ -71,7 +80,9 @@ class StrategyService(
                 topic = Topic.NOTIFICATION,
                 title = "Close position",
                 color = Color.GOOD,
-                fields = listOf()
+                fields = listOf(
+                    Field("price", getPrice(symbol).toString())
+                )
             ))
         state = StrategyState.WAITING
         return StrategyState.WAITING
@@ -81,7 +92,7 @@ class StrategyService(
         HistoryCandlestickQuery(
             symbol = symbol,
             granularity = granularity.value,
-            limit = 20,
+            limit = 200,
         )
     ).map { Ohlcv.from(it) }
 
