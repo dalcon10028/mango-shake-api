@@ -51,7 +51,7 @@ class BitgetFeignConfig(
         template.header("ACCESS-KEY", bitgetProperties.accessKey)
         template.header("ACCESS-PASSPHRASE", bitgetProperties.passphrase)
         template.header("ACCESS-TIMESTAMP", timestamp)
-        template.header("ACCESS-SIGN", generateSignature(timestamp, template.method(), template.path(), template.queryLine(), template.body()?.toString()))
+        template.header("ACCESS-SIGN", generateSignature(timestamp, template.method(), template.path(), template.queryLine(), template.body()))
     }
 
     fun errorDecoder(): ErrorDecoder = ErrorDecoder { _: String, r: Response ->
@@ -66,8 +66,9 @@ class BitgetFeignConfig(
         throw BitgetException(bitgetError)
     }
 
-    private fun generateSignature(timestamp: String, method: String, requestPath: String, queryString: String, body: String?): String {
-        val preHash = "$timestamp$method$requestPath$queryString${body ?: ""}"
+    private fun generateSignature(timestamp: String, method: String, requestPath: String, queryString: String, body: ByteArray?): String {
+        val serializedBody = body?.toString(charset("UTF-8")) ?: ""
+        val preHash = "$timestamp$method$requestPath$queryString$serializedBody"
         val secretKeyBytes = bitgetProperties.secretKey.toByteArray(charset("UTF-8"))
         val secretKeySpec = SecretKeySpec(secretKeyBytes, "HmacSHA256")
         mac.init(secretKeySpec)
