@@ -1,4 +1,4 @@
-package why_mango.bitget.dto.place_order
+package why_mango.bitget.dto.trade
 
 data class PlaceOrderResponse(
     /**

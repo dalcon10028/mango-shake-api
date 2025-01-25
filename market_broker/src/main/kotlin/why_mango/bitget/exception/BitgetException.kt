@@ -17,6 +17,7 @@ class BitgetException(
             "40008" to HttpStatus.REQUEST_TIMEOUT,
             "40009" to HttpStatus.INTERNAL_SERVER_ERROR,
             "40019" to HttpStatus.BAD_REQUEST,
+            "22002" to HttpStatus.NOT_FOUND,
         )
     }
 

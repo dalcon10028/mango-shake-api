@@ -1,37 +1,50 @@
 package why_mango.bitget
 
-import org.springframework.stereotype.Service
 import why_mango.bitget.dto.market.*
-import why_mango.bitget.enums.ProductType
-import why_mango.utils.*
+import why_mango.bitget.dto.trade.*
+import why_mango.bitget.enums.*
+import java.math.BigDecimal
 
-@Service
-class BitgetFutureService(
-    private val bitgetRest: BitgetRest,
-) {
-    suspend fun getTicker(symbol: String): TickerResponse {
-        val (price) = bitgetRest.getTicker(
-            TickerQuery(
-                symbol = symbol,
-                productType = ProductType.SUSDT_FUTURES
-            )
-        ).data
-        return price
-    }
 
-    suspend fun getHistoryCandlestick(query: HistoryCandlestickQuery): Sequence<HistoryCandleStickResponse> {
-        return bitgetRest.getHistoryCandlestick(query).data
-            .map {
-                val (timeStamp, open, high, low, close, volume, amount) = it
-                HistoryCandleStickResponse(
-                    timeStamp = timeStamp.toLong(),
-                    open = open.toBigDecimal(),
-                    high = high.toBigDecimal(),
-                    low = low.toBigDecimal(),
-                    close = close.toBigDecimal(),
-                    volume = volume.toBigDecimal(),
-                    amount = amount.toBigDecimal()
-                )
-            }.asSequence()
-    }
+interface BitgetFutureService {
+    val productType: ProductType
+
+    suspend fun getTicker(symbol: String): TickerResponse
+
+    suspend fun getHistoryCandlestick(
+        symbol: String,
+        granularity: Granularity,
+        limit: Int
+    ): List<HistoryCandleStickResponse>
+
+    suspend fun openLong(
+        symbol: String,
+        size: BigDecimal,
+        price: BigDecimal? = null,
+        orderId: String? = null,
+        presetStopSurplusPrice: BigDecimal? = null,
+        presetStopLossPrice: BigDecimal? = null
+    ): PlaceOrderResponse
+
+    suspend fun openShort(
+        symbol: String,
+        size: BigDecimal,
+        price: BigDecimal? = null,
+        orderId: String? = null,
+        presetStopSurplusPrice: BigDecimal? = null,
+        presetStopLossPrice: BigDecimal? = null
+    ): PlaceOrderResponse
+
+    suspend fun closeLong(
+        symbol: String,
+    ): Boolean
+
+    suspend fun closeShort(
+        symbol: String,
+    ): Boolean
+
+    suspend fun flashClose(
+        symbol: String,
+        holdSide: PositionDirection? = null,
+    ): Boolean
 }

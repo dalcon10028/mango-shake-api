@@ -1,4 +1,4 @@
-package why_mango.bitget.dto.place_order
+package why_mango.bitget.dto.trade
 
 import why_mango.bitget.enums.*
 import java.math.BigDecimal
@@ -18,14 +18,14 @@ data class PlaceOrderRequest(
      * SCOIN-FUTURES Mixed futures demo
      * SUSDC-FUTURES USDC professional futures demo
      */
-    val productType: ProductType = ProductType.SUSDT_FUTURES,
+    val productType: ProductType,
 
     /**
      * Position mode
      * isolated: isolated margin
      * crossed: crossed margin
      */
-    val marginMode: MarginMode,
+    val marginMode: MarginMode = MarginMode.ISOLATED,
 
     /**
      * Margin coin(capitalized)

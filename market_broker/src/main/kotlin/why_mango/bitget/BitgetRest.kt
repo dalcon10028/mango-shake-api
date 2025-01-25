@@ -1,9 +1,10 @@
 package why_mango.bitget
 
 import feign.*
-import why_mango.bitget.dto.BitgetResponse
+import why_mango.bitget.dto.*
 import why_mango.bitget.dto.market.*
 import why_mango.bitget.dto.position.*
+import why_mango.bitget.dto.trade.*
 
 interface BitgetRest {
     /**
@@ -27,9 +28,17 @@ interface BitgetRest {
     @RequestLine("GET /api/v2/mix/position/all-position")
     suspend fun getAllPositions(@QueryMap query: AllPositionsQuery): BitgetResponse<List<PositionResponse>>
 
-//    /**
-//     * Place Order
-//     */
-//    @RequestLine("POST /api/v2/mix/order/place-order")
-//    suspend fun placeOrder(body: PlaceOrderRequest): BitgetResponse<PlaceOrderResponse>
+    /**
+     * Place Order
+     */
+    @RequestLine("POST /api/v2/mix/order/place-order")
+    suspend fun placeOrder(body: PlaceOrderRequest): BitgetResponse<PlaceOrderResponse>
+
+    /**
+     * Flash Close Position
+     * Frequency limit: 1 time/1s (User ID)
+     * close position at market price
+     */
+    @RequestLine("POST /api/v2/mix/order/close-positions")
+    suspend fun flashClosePosition(body: FlashClosePositionRequest): BitgetResponse<FlashClosePositionResponse>
 }

@@ -7,12 +7,6 @@ upbit:
   access-key: 00000000000000000000000000000000000000000
   secret-key: 00000000000000000000000000000000000000000
 
-bitget:
-  base-url: https://api.bitget.com
-  passphrase: TCnlYmnOIVUe0rp8
-  access-key: bg_426974e3932678d0c63ce1b51dd6dbe1
-  secret-key: ef2677b11b2cc241784dcd9e3a82144b904dbb644d7ef45452fd443f2f3debcc
-
 logging:
   level:
     root: debug

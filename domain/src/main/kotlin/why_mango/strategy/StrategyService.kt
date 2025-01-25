@@ -3,9 +3,8 @@ package why_mango.strategy
 import kotlinx.coroutines.*
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
-import why_mango.bitget.BitgetFutureService
-import why_mango.bitget.dto.market.*
 import why_mango.bitget.enums.Granularity
+import why_mango.bitget.product_type.BitgetDemoFutureService
 import why_mango.component.slack.Color
 import why_mango.component.slack.Field
 import why_mango.component.slack.SlackEvent
@@ -18,7 +17,7 @@ import java.time.LocalDateTime
 
 @Service
 class StrategyService(
-    private val bitgetFutureService: BitgetFutureService,
+    private val bitgetFutureService: BitgetDemoFutureService,
     private val eventPublisher: ApplicationEventPublisher,
 ) {
     private var state: StrategyState = StrategyState.WAITING
@@ -69,7 +68,8 @@ class StrategyService(
                     Field("15m", band15m.toString()),
                     Field("1h", band1h.toString())
                 )
-            ))
+            )
+        )
         return StrategyState.HOLDING
     }
 
@@ -83,18 +83,14 @@ class StrategyService(
                 fields = listOf(
                     Field("price", getPrice(symbol).toString())
                 )
-            ))
+            )
+        )
         state = StrategyState.WAITING
         return StrategyState.WAITING
     }
 
-    private suspend fun getCandles(granularity: Granularity) = bitgetFutureService.getHistoryCandlestick(
-        HistoryCandlestickQuery(
-            symbol = symbol,
-            granularity = granularity.value,
-            limit = 200,
-        )
-    ).map { Ohlcv.from(it) }
+    private suspend fun getCandles(granularity: Granularity) =
+        bitgetFutureService.getHistoryCandlestick(symbol, granularity, 200).map { Ohlcv.from(it) }
 
     private suspend fun getPrice(symbol: String) = bitgetFutureService.getTicker(symbol).lastPr
 }
