@@ -24,9 +24,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
-    // r2dbc
-    api("org.springframework.boot:spring-boot-starter-data-r2dbc")
-
     // slack
     implementation("com.slack.api:slack-api-client:$slackVersion")
     implementation("com.slack.api:slack-api-model-kotlin-extension:$slackVersion")
