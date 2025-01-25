@@ -19,6 +19,7 @@ bin/
 
 ### IntelliJ IDEA ###
 .idea
+.run
 *.iws
 *.iml
 *.ipr
@@ -40,3 +41,4 @@ out/
 .kotlin
 
 .env
+*.env
