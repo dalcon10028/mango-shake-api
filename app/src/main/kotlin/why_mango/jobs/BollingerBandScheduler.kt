@@ -13,7 +13,7 @@ class BollingerBandScheduler(
     private val logger = KotlinLogging.logger {}
 
     /**
-     * 10분 마다 실행
+     * 1분 마다 실행
      */
     @Scheduled(cron = "0 */1 * * * *", zone = "Asia/Seoul")
     suspend fun nextTick() {
@@ -24,8 +24,8 @@ class BollingerBandScheduler(
     /**
      * 15분 마다 실행
      */
-    @Scheduled(cron = "0 */15 * * * *", zone = "Asia/Seoul")
-    suspend fun closePosition() {
-        strategyService.close()
-    }
+//    @Scheduled(cron = "0 */15 * * * *", zone = "Asia/Seoul")
+//    suspend fun closePosition() {
+//        strategyService.close()
+//    }
 }

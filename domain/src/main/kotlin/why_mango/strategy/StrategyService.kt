@@ -1,17 +1,15 @@
 package why_mango.strategy
 
 import kotlinx.coroutines.*
+import why_mango.strategy.model.*
+import why_mango.component.slack.*
+import why_mango.strategy.enums.StrategyState.*
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import why_mango.bitget.enums.Granularity
 import why_mango.bitget.product_type.BitgetDemoFutureService
-import why_mango.component.slack.Color
-import why_mango.component.slack.Field
-import why_mango.component.slack.SlackEvent
-import why_mango.component.slack.Topic
+import why_mango.strategy.enums.StrategyState
 import why_mango.strategy.indicator.bollingerBand
-import why_mango.strategy.model.BollingerBand
-import why_mango.strategy.model.Ohlcv
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -20,61 +18,109 @@ class StrategyService(
     private val bitgetFutureService: BitgetDemoFutureService,
     private val eventPublisher: ApplicationEventPublisher,
 ) {
-    private var state: StrategyState = StrategyState.WAITING
+    private var state: StrategyState = WAITING
     private val symbol = "SXRPSUSDT"
 
-    suspend fun next(time: LocalDateTime) = withContext(Dispatchers.IO) {
-        // 홀딩중이면 스킵
-        if (state == StrategyState.HOLDING) return@withContext
+    companion object {
+        private val THREE = 3.toBigDecimal()
+        private val DEAL_AMOUNT_USD = "200".toBigDecimal()
+    }
 
-        val (bollingerBand3m, bollingerBand15m, bollingerBand1h) = awaitAll(
-            async { getCandles(Granularity.THREE_MINUTES).map { it.close }.toList().bollingerBand() },
-            async { getCandles(Granularity.FIFTEEN_MINUTES).map { it.close }.toList().bollingerBand() },
-            async { getCandles(Granularity.ONE_HOUR).map { it.close }.toList().bollingerBand() },
-        )
+    suspend fun next(time: LocalDateTime) = withContext(Dispatchers.IO) {
+        // 포지션 요청중이면 무시
+        if (state == REQUESTING_POSITION) return@withContext
+
+        val bollingerBand3m = getCandles(Granularity.THREE_MINUTES).map { it.close }.toList().bollingerBand(THREE)
         val price = getPrice(symbol)
 
-        // 시그널체크
-        if (longSignal(price, bollingerBand3m, bollingerBand15m, bollingerBand1h)) {
-            state = open("long", price, bollingerBand3m, bollingerBand15m, bollingerBand1h)
-        } else if (shortSignal(price, bollingerBand3m, bollingerBand15m, bollingerBand1h)) {
-            state = open("short", price, bollingerBand3m, bollingerBand15m, bollingerBand1h)
+        when (state) {
+            HOLDING_LONG, HOLDING_SHORT -> {
+                if (closeSignal(price, bollingerBand3m)) {
+                    state = close()
+                }
+            }
+            WAITING -> {
+                if (longSignal(price, bollingerBand3m)) {
+                    state = openLong(price, bollingerBand3m)
+                } else if (shortSignal(price, bollingerBand3m)) {
+                    state = openShort(price, bollingerBand3m)
+                }
+            }
+            else -> {
+                // do nothing
+            }
         }
     }
 
-    fun longSignal(price: BigDecimal, band3m: BollingerBand, band15m: BollingerBand, band1h: BollingerBand): Boolean {
-        val (_, _, lower3m) = band3m
-        val (_, _, lower15m) = band15m
-        val (_, _, lower1h) = band1h
-        return price < lower3m && price < lower15m && price < lower1h
+    private suspend fun longSignal(price: BigDecimal, band: BollingerBand): Boolean {
+        val (_, _, lower) = band
+        return price < lower
     }
 
-    fun shortSignal(price: BigDecimal, band3m: BollingerBand, band15m: BollingerBand, band1h: BollingerBand): Boolean {
-        val (_, upper3m, _) = band3m
-        val (_, upper15m, _) = band15m
-        val (_, upper1h, _) = band1h
-        return price > upper3m && price > upper15m && price > upper1h
+    private suspend fun shortSignal(price: BigDecimal, band: BollingerBand): Boolean {
+        val (upper, _, _) = band
+        return price > upper
     }
 
-    fun open(position: String, price: BigDecimal, band3m: BollingerBand, band15m: BollingerBand, band1h: BollingerBand): StrategyState {
+    private suspend fun closeSignal(price: BigDecimal, band: BollingerBand): Boolean {
+        val (_, sma, _) = band
+        return when (state) {
+            HOLDING_LONG -> {
+                price > sma
+            }
+            HOLDING_SHORT -> {
+                price < sma
+            }
+            else -> false
+        }
+    }
+
+    suspend fun openLong(price: BigDecimal, band: BollingerBand): StrategyState {
+        bitgetFutureService.openLong(
+            symbol,
+            size = DEAL_AMOUNT_USD.divide(price),
+            price,
+        )
         eventPublisher.publishEvent(
             SlackEvent(
                 topic = Topic.NOTIFICATION,
-                title = "Open $position position",
+                title = "Request open long position",
                 color = Color.GOOD,
                 fields = listOf(
                     Field("price", price.toString()),
-                    Field("3m", band3m.toString()),
-                    Field("15m", band15m.toString()),
-                    Field("1h", band1h.toString())
+                    Field("band3M", band.toString()),
                 )
             )
         )
-        return StrategyState.HOLDING
+        return REQUESTING_POSITION
+    }
+
+    suspend fun openShort(price: BigDecimal, band: BollingerBand): StrategyState {
+        bitgetFutureService.openShort(
+            symbol,
+            size = DEAL_AMOUNT_USD.divide(price),
+            price,
+        )
+        eventPublisher.publishEvent(
+            SlackEvent(
+                topic = Topic.NOTIFICATION,
+                title = "Request open short position",
+                color = Color.GOOD,
+                fields = listOf(
+                    Field("price", price.toString()),
+                    Field("band3M", band.toString()),
+                )
+            )
+        )
+        return REQUESTING_POSITION
     }
 
     suspend fun close(): StrategyState {
-        if (state == StrategyState.WAITING) return StrategyState.WAITING
+        when (state) {
+            HOLDING_LONG -> bitgetFutureService.closeLong(symbol)
+            HOLDING_SHORT -> bitgetFutureService.closeShort(symbol)
+            else -> return state
+        }
         eventPublisher.publishEvent(
             SlackEvent(
                 topic = Topic.NOTIFICATION,
@@ -85,8 +131,7 @@ class StrategyService(
                 )
             )
         )
-        state = StrategyState.WAITING
-        return StrategyState.WAITING
+        return WAITING
     }
 
     private suspend fun getCandles(granularity: Granularity) =
