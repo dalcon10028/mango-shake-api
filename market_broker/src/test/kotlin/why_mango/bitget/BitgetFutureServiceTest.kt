@@ -5,10 +5,8 @@ import com.ninjasquad.springmockk.MockkBeans
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import org.springframework.boot.test.context.SpringBootTest
-import why_mango.bitget.dto.market.HistoryCandlestickQuery
 import why_mango.bitget.enums.Granularity
-import why_mango.bitget.enums.Side
-import why_mango.bitget.product_type.BitgetDemoFutureService
+import why_mango.bitget.rest.BitgetDemoFutureService
 import why_mango.component.slack.SlackEventListener
 import java.util.UUID
 

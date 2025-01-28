@@ -24,6 +24,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
+    api("com.squareup.okhttp3:okhttp:4.12.0")
+
     // slack
     implementation("com.slack.api:slack-api-client:$slackVersion")
     implementation("com.slack.api:slack-api-model-kotlin-extension:$slackVersion")

@@ -6,6 +6,12 @@ spring:
     database: ${DATABASE_NAME}
     username: ${DATABASE_USERNAME}
     password: ${DATABASE_PASSWORD}
+    pool:
+      enabled: true
+      initial-size: 10
+      max-size: 20
+      validation-query: SELECT 1
+      max-idle-time: 30m
 
   flyway:
     baseline-on-migrate: false

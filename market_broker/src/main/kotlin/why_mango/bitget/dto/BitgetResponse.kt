@@ -1,6 +1,6 @@
 package why_mango.bitget.dto
 
-open class BitgetResponse<out T> (
+data class BitgetResponse<out T> (
     val code: String,
     val msg: String,
     val requestTime: Long,

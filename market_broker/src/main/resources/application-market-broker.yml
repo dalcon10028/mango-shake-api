@@ -1,5 +1,7 @@
 bitget:
   base-url: https://api.bitget.com
+  websocket-public-url: wss://ws.bitget.com/v2/ws/public
+  websocket-private-url: wss://ws.bitget.com/v2/ws/private
   passphrase: ${BITGET_PASSPHRASE}
   access-key: ${BITGET_ACCESS_KEY}
   secret-key: ${BITGET_SECRET_KEY}

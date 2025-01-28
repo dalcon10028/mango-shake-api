@@ -1,4 +1,4 @@
-package why_mango.bitget.product_type
+package why_mango.bitget.rest
 
 import org.springframework.stereotype.Service
 import why_mango.bitget.BitgetFutureService
