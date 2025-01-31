@@ -4,4 +4,6 @@ import com.google.gson.annotations.SerializedName
 
 enum class WebsocketEvent {
     @SerializedName("subscribe") SUBSCRIBE,
+
+    @SerializedName("unsubscribe") UNSUBSCRIBE,
 }

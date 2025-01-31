@@ -6,6 +6,17 @@ interface WebsocketChannel {
     val value: String
 }
 
+enum class HistoryPositionChannel(
+    override val value: String,
+): WebsocketChannel {
+    /**
+     * history_position
+     */
+    @SerializedName("positions-history")
+    HISTORY_POSITION("positions-history"),
+    ;
+}
+
 enum class TickerChannel(
     override val value: String,
 ) : WebsocketChannel {
@@ -15,11 +26,6 @@ enum class TickerChannel(
     @SerializedName("ticker")
     TICKER("ticker"),
     ;
-
-    companion object {
-        fun from(channel: String): TickerChannel? =
-            entries.find { it.value == channel }
-    }
 }
 
 enum class CandleStickChannel(
@@ -74,9 +80,4 @@ enum class CandleStickChannel(
     CANDLE_1DAY("candle1D"),
 
     ;
-
-    companion object {
-        fun from(channel: String): CandleStickChannel? =
-            entries.find { it.value == channel }
-    }
 }

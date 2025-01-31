@@ -13,13 +13,17 @@ import com.google.gson.reflect.TypeToken
 import okio.ByteString
 import okio.EOFException
 import org.springframework.stereotype.Component
-import why_mango.bitget.adapter.BitgetWebsocketChannelAdapter
+import why_mango.bitget.config.BitgetProperties
 import why_mango.bitget.dto.BitgetWebsocketResponse
+import why_mango.bitget.dto.websocket.push_event.CandleStickPushEvent
+import why_mango.bitget.dto.websocket.push_event.TickerPushEvent
 import why_mango.serialization.gson.NumberStringSerializer
 import java.math.BigDecimal
 
 @Component
-class BitgetDemoWebSocketClient {
+class BitgetPublicDemoWebsocketClient(
+    private val bitgetProperties: BitgetProperties,
+) {
     private val logger = KotlinLogging.logger {}
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val client = OkHttpClient().newBuilder()
@@ -29,7 +33,6 @@ class BitgetDemoWebSocketClient {
     private val gson: Gson = GsonBuilder()
         .enableComplexMapKeySerialization()
         .registerTypeAdapter(BigDecimal::class.java, NumberStringSerializer)
-        .registerTypeAdapter(WebsocketChannel::class.java, BitgetWebsocketChannelAdapter())
         .create()
     private var isRunning = false
     private val _priceSharedFlow = MutableSharedFlow<TickerPushEvent>(replay = 1)
@@ -39,7 +42,7 @@ class BitgetDemoWebSocketClient {
 
     fun connect() {
         val request = Request.Builder()
-            .url("wss://ws.bitget.com/v2/ws/public")
+            .url(bitgetProperties.websocketPublicUrl)
             .build()
 
         webSocket = client.newWebSocket(request, object : WebSocketListener() {

@@ -1,6 +1,5 @@
 package why_mango.bitget.dto.websocket
 
-import why_mango.bitget.dto.BitgetWebsocketRequest
 import why_mango.bitget.enums.ProductType
 import why_mango.bitget.enums.WebsocketChannel
 
@@ -29,11 +28,11 @@ class SubscribeChannelBuilder {
         channels.add(SubscribeChannel(instType, channel, instId))
     }
 
-    fun build(): BitgetWebsocketRequest = BitgetWebsocketRequest(
+    fun build(): BitgetSubscribeRequest = BitgetSubscribeRequest(
         args = channels
     )
 }
 
-fun subscribeChannels(init: SubscribeChannelBuilder.() -> Unit): BitgetWebsocketRequest {
+fun subscribeChannels(init: SubscribeChannelBuilder.() -> Unit): BitgetSubscribeRequest {
     return SubscribeChannelBuilder().apply(init).build()
 }

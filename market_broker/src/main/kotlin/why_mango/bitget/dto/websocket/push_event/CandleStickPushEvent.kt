@@ -1,4 +1,4 @@
-package why_mango.bitget.dto.websocket
+package why_mango.bitget.dto.websocket.push_event
 
 import java.math.BigDecimal
 

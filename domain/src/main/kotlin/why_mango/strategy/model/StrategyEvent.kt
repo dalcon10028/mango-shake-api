@@ -1,6 +1,7 @@
 package why_mango.strategy.model
 
-import why_mango.bitget.dto.websocket.*
+import why_mango.bitget.dto.websocket.push_event.CandleStickPushEvent
+import why_mango.bitget.dto.websocket.push_event.TickerPushEvent
 
 sealed class StrategyEvent
 

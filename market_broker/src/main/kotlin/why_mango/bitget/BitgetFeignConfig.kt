@@ -8,9 +8,9 @@ import feign.gson.GsonDecoder
 import feign.gson.GsonEncoder
 import feign.kotlin.CoroutineFeign
 import feign.slf4j.Slf4jLogger
-import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import why_mango.bitget.config.BitgetProperties
 import why_mango.bitget.dto.BitgetResponse
 import why_mango.bitget.exception.BitgetException
 import why_mango.serialization.gson.NumberStringSerializer
@@ -74,12 +74,4 @@ class BitgetFeignConfig(
         mac.init(secretKeySpec)
         return Base64.getEncoder().encodeToString(mac.doFinal(preHash.toByteArray(charset("UTF-8"))))
     }
-
-    @ConfigurationProperties(prefix = "bitget")
-    data class BitgetProperties(
-        val baseUrl: String,
-        val passphrase: String,
-        val accessKey: String,
-        val secretKey: String,
-    )
 }
