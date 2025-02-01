@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.*
  * Emit a list of values that are collected in a sliding window.
  * The window is moved by one element at a time.
  */
-suspend fun <T> Flow<T>.windowed(size: Int): Flow<List<T>> = flow {
+suspend fun <T> Flow<T>.windowed(size: Int = 9): Flow<List<T>> = flow {
     require(size > 0) { "Window size must be greater than 0" }
     val window = ArrayDeque<T>(size)
     collect { value ->
