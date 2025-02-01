@@ -118,7 +118,7 @@ abstract class AbstractBitgetWebsocketClient(
     private fun startPingJob() {
         scope.launch {
             while (isRunning) {
-                delay(30_000)
+                delay(10_000)
                 logger.debug { "Sent ping message" }
                 webSocket.send("ping")
             }

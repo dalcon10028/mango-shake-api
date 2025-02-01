@@ -5,18 +5,19 @@ import org.springframework.context.annotation.Bean
 import org.springframework.stereotype.Component
 import why_mango.bitget.websocket.BitgetPrivateWebsocketClient
 import why_mango.bitget.websocket.BitgetPublicDemoWebsocketClient
-import why_mango.strategy.bollinger_band.BollingerBandStateMachine
+import why_mango.strategy.bollinger_band.StefanoTradingMachine
 
 @Component
 class WebSocketInitializer(
     private val publicClient: BitgetPublicDemoWebsocketClient,
     private val privateClient: BitgetPrivateWebsocketClient,
-    private val machine: BollingerBandStateMachine,
+    private val machine: StefanoTradingMachine,
 ) {
     @Bean
-    fun applicationRunner() = ApplicationRunner {
-//        publicClient.connect()
-        privateClient.connect()
+    suspend fun applicationRunner() =
+        ApplicationRunner {
+        publicClient.connect()
+//        privateClient.connect()
         machine.subscribeEventFlow()
     }
 }
