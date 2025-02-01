@@ -37,8 +37,10 @@ class BitgetPublicDemoWebsocketClient(
     private var isRunning = false
     private val _priceSharedFlow = MutableSharedFlow<TickerPushEvent>(replay = 1)
     private val _candlestickSharedFlow = MutableSharedFlow<CandleStickPushEvent>(replay = 200)
-    val priceEventFlow = _priceSharedFlow.asSharedFlow()
-    val candlestickEventFlow = _candlestickSharedFlow.asSharedFlow()
+    val priceEventFlow
+        get() = _priceSharedFlow.asSharedFlow()
+    val candlestickEventFlow
+        get() = _candlestickSharedFlow.asSharedFlow()
 
     fun connect() {
         val request = Request.Builder()

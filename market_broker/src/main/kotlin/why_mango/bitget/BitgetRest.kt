@@ -15,6 +15,13 @@ interface BitgetRest {
     suspend fun getTicker(@QueryMap query: TickerQuery): BitgetResponse<List<TickerResponse>>
 
     /**
+     * Get Candlestick Data
+     * By default, 100 records are returned. If there is no data, an empty array is returned. The queryable data history varies depending on the k-line granularity.
+     */
+    @RequestLine("GET /api/v2/mix/market/candles")
+    suspend fun getCandlestick(@QueryMap query: CandlestickQuery): BitgetResponse<List<List<String>>>
+
+    /**
      * Get Historical Candlestick
      */
     @RequestLine("GET /api/v2/mix/market/history-candles")

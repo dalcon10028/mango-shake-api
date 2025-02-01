@@ -11,6 +11,12 @@ interface BitgetFutureService {
 
     suspend fun getTicker(symbol: String): TickerResponse
 
+    suspend fun getCandlestick(
+        symbol: String,
+        granularity: Granularity,
+        limit: Int
+    ): List<CandleStickResponse>
+
     suspend fun getHistoryCandlestick(
         symbol: String,
         granularity: Granularity,

@@ -18,12 +18,20 @@ import java.util.UUID
 class BitgetFutureServiceTest(
     private val bitgetFutureService: BitgetDemoFutureService,
 ) : FunSpec({
-    test("getHistoryCandlestick") {
-        val historyCandlestick = bitgetFutureService.getHistoryCandlestick(
+    test("getCandlestick") {
+        val candlestick = bitgetFutureService.getCandlestick(
             "BTCUSDT", Granularity.ONE_MINUTE, 10
+        )
+
+        candlestick.size shouldBe 10
+    }
+
+    test("getHistoryCandlestick") {
+        val historyCandlestick = bitgetFutureService.getCandlestick(
+            "SXRPSUSDT", Granularity.ONE_MINUTE, 1000
         ).toList()
 
-        historyCandlestick.size shouldBe 10
+        historyCandlestick.size shouldBe 1000
     }
 
     test("openLong") {

@@ -28,6 +28,28 @@ class BitgetDemoFutureService(
             )
         ).data[0]
 
+    override suspend fun getCandlestick(symbol: String, granularity: Granularity, limit: Int): List<CandleStickResponse> =
+        bitgetRest.getCandlestick(
+            CandlestickQuery(
+                symbol = symbol,
+                productType = productType,
+                granularity = granularity.value,
+                limit = limit
+            )
+        ).data
+            .map {
+                val (timestamp, open, high, low, close, volume, amount) = it
+                CandleStickResponse(
+                    timestamp = timestamp.toLong(),
+                    open = open.toBigDecimal(),
+                    high = high.toBigDecimal(),
+                    low = low.toBigDecimal(),
+                    close = close.toBigDecimal(),
+                    volume = volume.toBigDecimal(),
+                    amount = amount.toBigDecimal()
+                )
+            }
+
     override suspend fun getHistoryCandlestick(symbol: String, granularity: Granularity, limit: Int): List<HistoryCandleStickResponse> =
         bitgetRest.getHistoryCandlestick(
             HistoryCandlestickQuery(
