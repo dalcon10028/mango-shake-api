@@ -19,6 +19,7 @@ import why_mango.bitget.dto.websocket.push_event.CandleStickPushEvent
 import why_mango.bitget.dto.websocket.push_event.TickerPushEvent
 import why_mango.serialization.gson.NumberStringSerializer
 import java.math.BigDecimal
+import java.util.concurrent.TimeUnit.MINUTES
 
 @Component
 class BitgetPublicDemoWebsocketClient(
@@ -26,8 +27,12 @@ class BitgetPublicDemoWebsocketClient(
 ) {
     private val logger = KotlinLogging.logger {}
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val request = Request.Builder()
+        .url(bitgetProperties.websocketPublicUrl)
+        .build()
     private val client = OkHttpClient().newBuilder()
-        .pingInterval(10, SECONDS)
+        .readTimeout(2, MINUTES)
+        .pingInterval(30, SECONDS)
         .build()
     private lateinit var webSocket: WebSocket
     private val gson: Gson = GsonBuilder()
@@ -35,22 +40,26 @@ class BitgetPublicDemoWebsocketClient(
         .registerTypeAdapter(BigDecimal::class.java, NumberStringSerializer)
         .create()
     private var isRunning = false
+    private var pingJob: Job? = null
     private val _priceSharedFlow = MutableSharedFlow<TickerPushEvent>(replay = 1)
-    private val _candlestickSharedFlow = MutableSharedFlow<CandleStickPushEvent>(replay = 200)
+    private val _candlestickSharedFlow = MutableSharedFlow<CandleStickPushEvent>(replay = 500)
     val priceEventFlow
         get() = _priceSharedFlow.asSharedFlow()
     val candlestickEventFlow
         get() = _candlestickSharedFlow.asSharedFlow()
 
-    fun connect() {
-        val request = Request.Builder()
-            .url(bitgetProperties.websocketPublicUrl)
-            .build()
+    companion object {
+        private const val NORMAL_CLOSURE_STATUS = 1000
+    }
 
+    fun connect() {
         webSocket = client.newWebSocket(request, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 logger.info { "Connected to bitget WebSocket" }
                 isRunning = true
+
+                // 기존 pingJob이 있다면 취소 후 재시작
+                pingJob?.cancel()
                 startPingJob()
 
                 // 구독 메시지 전송
@@ -69,20 +78,15 @@ class BitgetPublicDemoWebsocketClient(
             }
 
             override fun onMessage(webSocket: WebSocket, text: String) {
-                logger.debug { "Received message: $text" }
-
                 if (text == "pong") {
-                    logger.debug { "Received pong message" }
+                    logger.info { "Received pong message" }
                     return
                 }
-
                 val baseType = object : TypeToken<BitgetWebsocketResponse<JsonElement>>() {}.type
                 val response: BitgetWebsocketResponse<JsonElement> = gson.fromJson(text, baseType)
-
                 response.event?.let {
                     logger.info { "$it event received ${response.arg}" }
                 } ?: handleResponse(response.arg.channel, response.data)
-
             }
 
             override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
@@ -90,23 +94,19 @@ class BitgetPublicDemoWebsocketClient(
             }
 
             override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
-                logger.info { "Closing WebSocket connection: $code, $reason" }
-            }
-
-            override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-                logger.info { "Closed WebSocket connection: $code, $reason" }
-                reconnect()
+                webSocket.close(NORMAL_CLOSURE_STATUS, null)
+                webSocket.cancel()
+                logger.info { "Closing WebSocket connection with code $code and reason $reason" }
             }
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                 logger.error(t) { "WebSocket failure" }
                 isRunning = false
+                pingJob?.cancel()  // 실패 시에도 pingJob 취소
 
                 if (t is EOFException) {
                     logger.warn { "Server closed the WebSocket connection. Attempting to reconnect..." }
                 }
-
-                reconnect()
             }
         })
     }
@@ -144,11 +144,11 @@ class BitgetPublicDemoWebsocketClient(
     }
 
     private fun startPingJob() {
-        scope.launch {
+        pingJob = scope.launch {
             while (isRunning) {
                 delay(30_000)
                 logger.debug { "Sent ping message" }
-                webSocket.send("ping")
+//                webSocket.send("ping")
             }
         }
     }

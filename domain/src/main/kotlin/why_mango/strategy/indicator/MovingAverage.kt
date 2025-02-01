@@ -1,5 +1,7 @@
 package why_mango.strategy.indicator
 
+import why_mango.strategy.enums.CrossResult
+import why_mango.strategy.enums.CrossResult.*
 import java.math.BigDecimal
 import java.math.BigDecimal.*
 import java.math.RoundingMode
@@ -19,7 +21,7 @@ import kotlin.math.pow
 fun List<BigDecimal>.ema(
     period: Int,
     scale: Int = 10,
-    finalScale: Int = 2,
+    finalScale: Int = 8,
     roundingMode: RoundingMode = RoundingMode.HALF_UP
 ): List<BigDecimal> {
     require(period > 0) { "Period must be positive" }
@@ -188,4 +190,42 @@ fun List<BigDecimal>.jmaSlope(
     val angleBD = BigDecimal(angleDegrees).setScale(finalScale, roundingMode)
 
     return angleBD
+}
+
+/**
+ * Calculate Exponential Moving Average Cross (EMA Cross) signals.
+ *
+ * 윈도우(캔들 개수) 내의 EMA(단기, 장기)를 비교하여 신호를 생성합니다.
+ * Golden Cross: 윈도우 시작은 단기가 장기 아래에 있고 윈도우 마지막 값은 단기가 장기 위에 있음
+ * Death Cross: 윈도우 시작은 단기가 장기 위에 있고 윈도우 마지막 값은 단기가 장기 아래에 있음
+ * None: 신호 없음
+ *
+ * 윈도우 내에 Golden Cross와 Death Cross가 동시에 발생하면 None을 반환합니다.
+ * 윈도우 내에 Golden Cross와 None이 동시에 발생하면 Golden Cross를 반환합니다.
+ * 윈도우 내에 Death Cross와 None이 동시에 발생하면 Death Cross를 반환합니다.
+ */
+fun List<BigDecimal>.emaCross(short: Int, long: Int, window: Int = 6): List<CrossResult> {
+    require(short > 0) { "Short period must be positive" }
+    require(long > 0) { "Long period must be positive" }
+    require(short < long) { "Short period must be less than long period" }
+    if (this.size < long) return emptyList()
+
+    val shortEma = this.ema(short)
+    val longEma = this.ema(long)
+    if (shortEma.size < window || longEma.size < window) return emptyList()
+
+    return shortEma.zip(longEma).windowed(window).map { windowList ->
+        val start = windowList.first()
+        val end = windowList.last()
+        val shortStart = start.first
+        val shortEnd = end.first
+        val longStart = start.second
+        val longEnd = end.second
+
+        when {
+            shortStart < longStart && shortEnd > longEnd -> GOLDEN_CROSS
+            shortStart > longStart && shortEnd < longEnd -> DEAD_CROSS
+            else -> NONE
+        }
+    }
 }

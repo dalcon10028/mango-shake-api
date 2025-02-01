@@ -25,5 +25,5 @@ fun <T : Any>Flow<T>.windowed(size: Int, step: Int = 1): Flow<List<T>> =
 fun <T : Any, K> Flow<T>.groupBy(keyMapper: (T) -> K): Flow<Pair<K, Flow<T>>> =
     this.asFlux()
         .groupBy(keyMapper)
-        .asFlow()
         .map { it.key() to it.asFlow() }
+        .asFlow()

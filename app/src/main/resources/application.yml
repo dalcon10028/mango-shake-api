@@ -29,7 +29,9 @@ springdoc:
 
 logging:
   level:
-    root: info
+    root: INFO
+    okhttp3: INFO
+
 
 auth:
   jwt:

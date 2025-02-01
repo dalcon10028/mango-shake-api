@@ -7,14 +7,20 @@ import why_mango.strategy.model.*
 import kotlinx.coroutines.flow.*
 import why_mango.strategy.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.reactive.asFlow
-import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactor.asFlux
-import why_mango.bitget.BitgetRest
+import org.springframework.context.ApplicationEventPublisher
+import why_mango.bitget.BitgetFutureService
 import why_mango.bitget.websocket.BitgetPrivateWebsocketClient
+import why_mango.component.slack.Color
+import why_mango.component.slack.Field
+import why_mango.component.slack.SlackEvent
+import why_mango.component.slack.Topic
+import why_mango.strategy.enums.CrossResult
+import why_mango.strategy.enums.CrossResult.*
 import why_mango.strategy.indicator.*
+import why_mango.utils.groupBy
 import why_mango.utils.toLocalDateTime
 import why_mango.utils.windowed
+import java.math.BigDecimal
 
 /**
  * 스테파노 매매법
@@ -23,7 +29,8 @@ import why_mango.utils.windowed
 class StefanoTradingMachine(
     private val publicRealtimeClient: BitgetPublicDemoWebsocketClient,
     private val privateRealtimeClient: BitgetPrivateWebsocketClient,
-    private val bitgetRest: BitgetRest,
+    private val bitgetFutureService: BitgetFutureService,
+    private val publisher: ApplicationEventPublisher,
 ) : StrategyStateMachine {
     private val logger = KotlinLogging.logger {}
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -33,23 +40,23 @@ class StefanoTradingMachine(
         .map { it.lastPr }
         .distinctUntilChanged()
 
-//    @OptIn(FlowPreview::class)
-    private val candlestickFlow = publicRealtimeClient.candlestickEventFlow
-//        .map { it.close }
-//        .distinctUntilChanged()
-//        .sample(1000)
-
-    private suspend fun smaFlow(window: Int) = publicRealtimeClient.candlestickEventFlow
+    private suspend fun candleSticksFlow() = publicRealtimeClient.candlestickEventFlow
         .distinctUntilChangedBy { it.timestamp }
-        .map { it.close }
-        .windowed(window)
-        .map { it.sma(window) }
 
-    private suspend fun macdFlow() = publicRealtimeClient.candlestickEventFlow
+    private suspend fun emaCrossIndicator(short: Int, long: Int, window: Int) = publicRealtimeClient.candlestickEventFlow
         .distinctUntilChangedBy { it.timestamp }
         .map { it.close }
         .windowed(200)
-        .map { window -> window.macd(fastLength = 12, slowLength = 26, signalLength = 9) }
+        .map { candles -> candles.emaCross(short, long, window) }
+        .map { it.last() }
+
+
+    private suspend fun macdCrossIndicator() = publicRealtimeClient.candlestickEventFlow
+        .distinctUntilChangedBy { it.timestamp }
+        .map { it.close }
+        .windowed(200)
+        .map { window -> window.macdCross() }
+        .map { it.last() }
 
     private suspend fun jmaSlopeFlow() = publicRealtimeClient.candlestickEventFlow
         .distinctUntilChangedBy { it.timestamp }
@@ -57,22 +64,65 @@ class StefanoTradingMachine(
         .windowed(200)
         .map { window -> window.jmaSlope() }
 
+    private suspend fun candleSticks() = publicRealtimeClient.candlestickEventFlow
+        .groupBy { it.timestamp }
+        .onEach {
+            logger.info {
+                "candleSticks: ${
+                    it.second.onEach {
+                        it.close
+                    }
+                }"
+            }
+        }
+        .map { (_, candles) -> candles.last() }
+        .map { it.close }
 
     private val positionFlow = privateRealtimeClient.historyPositionEventFlow
 
+    @OptIn(FlowPreview::class)
     fun subscribeEventFlow() = scope.launch {
-//        smaFlow(12).collect {
-//            logger.info { "sma12: $it" }
+//        candleSticks().collect {
+//            logger.info { "candleSticks: $it" }
 //        }
 
         combine(
-            smaFlow(12),
-            smaFlow(26),
+            emaCrossIndicator(12, 26, 5),
             jmaSlopeFlow(),
-            priceFlow
-        ) { sma12, sma26, jma, price ->
-            logger.info { "jma: $jma, sma12: $sma12, sma26: $sma26, price: $price" }
-        }.collect()
+            macdCrossIndicator(),
+            candleSticksFlow(),
+            priceFlow,
+        ) { emaCross, jmaSlope, macd, candle, price ->
+            require(jmaSlope != null) { "jmaSlope is null" }
+            StefanoTrade(emaCross, jmaSlope, macd, price)
+        }
+            .sample(1000)
+            .onEach { logger.debug { "StefanoTrade: $it" } }
+            .filter { state == Waiting }
+            .filter { it.emaCross == GOLDEN_CROSS && it.macdCross == GOLDEN_CROSS && it.jmaSlope > BigDecimal.ZERO }
+            .onEach {
+                logger.info { "openLong: $it" }
+                bitgetFutureService.openLong(
+                    "SXRPSUSDT",
+                    size = 200.toBigDecimal(),
+                    price = it.price
+                )
+                state = Holding
+                publisher.publishEvent(
+                    SlackEvent(
+                        topic = Topic.NOTIFICATION,
+                        title = "Request open long position",
+                        color = Color.GOOD,
+                        fields = listOf(
+                            Field("price", it.price.toString()),
+                            Field("emaCross", it.emaCross.toString()),
+                            Field("jmaSlope", it.jmaSlope.toString()),
+                            Field("macdCross", it.macdCross.toString())
+                        )
+                    )
+                )
+            }
+            .collect()
     }
 
     override suspend fun waiting(event: StrategyEvent): TradeState {
@@ -84,4 +134,11 @@ class StefanoTradingMachine(
     override suspend fun holding(event: StrategyEvent): TradeState {
         TODO("Not yet implemented")
     }
+
+    data class StefanoTrade(
+        val emaCross: CrossResult,
+        val jmaSlope: BigDecimal,
+        val macdCross: CrossResult,
+        val price: BigDecimal,
+    )
 }

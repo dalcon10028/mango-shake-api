@@ -25,4 +25,23 @@ class MacdKtTest: StringSpec({
         macdResult.signal shouldBe emptyList()
         macdResult.histogram shouldBe emptyList()
     }
+
+    "MACD calculation on a window of 26 values returns empty results" {
+        // 제공된 예시값 (26개의 가격 데이터)
+        val window = listOf(
+            "3.037", "3.043", "3.038", "3.037", "3.039", "3.044", "3.042", "3.04",
+            "3.042", "3.045", "3.043", "3.047", "3.044", "3.048", "3.047", "3.048",
+            "3.048", "3.05", "3.048", "3.046", "3.047", "3.043", "3.048", "3.048",
+            "3.059", "3.06"
+        ).map { it.toBigDecimal() }
+
+        // MACD 함수 호출: FastLength=12, SlowLength=26, SignalLength=9
+        val result = window.macd(fastLength = 12, slowLength = 26, signalLength = 9)
+
+        // 실제 계산에서는 slowEMA의 결과가 1개, fastEMA 정렬 후 MACD 라인도 1개가 되어,
+        // Signal 라인을 계산할 수 없으므로 결과는 빈 리스트가 되어야 함.
+        result.macd shouldBe emptyList()
+        result.signal shouldBe emptyList()
+        result.histogram shouldBe emptyList()
+    }
 })

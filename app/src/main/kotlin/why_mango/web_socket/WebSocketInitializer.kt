@@ -14,8 +14,7 @@ class WebSocketInitializer(
     private val machine: StefanoTradingMachine,
 ) {
     @Bean
-    suspend fun applicationRunner() =
-        ApplicationRunner {
+    suspend fun applicationRunner() = ApplicationRunner {
         publicClient.connect()
 //        privateClient.connect()
         machine.subscribeEventFlow()

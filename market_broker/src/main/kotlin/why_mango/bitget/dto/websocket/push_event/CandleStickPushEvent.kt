@@ -57,4 +57,8 @@ data class CandleStickPushEvent(
             )
         }
     }
+
+    val priceKey: String
+        get() = "${open}_${high}_${low}_${close}_${timestamp}"
+
 }
