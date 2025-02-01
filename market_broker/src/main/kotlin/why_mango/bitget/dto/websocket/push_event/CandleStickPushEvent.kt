@@ -6,7 +6,7 @@ data class CandleStickPushEvent(
     /**
      * Start time, milliseconds format of Unix timestamp, e.g.1597026383085
      */
-    val timeStamp: Long,
+    val timestamp: Long,
 
     /**
      * Opening price
@@ -46,7 +46,7 @@ data class CandleStickPushEvent(
     companion object {
         fun from(data: List<String>): CandleStickPushEvent {
             return CandleStickPushEvent(
-                timeStamp = data[0].toLong(),
+                timestamp = data[0].toLong(),
                 open = data[1].toBigDecimal(),
                 high = data[2].toBigDecimal(),
                 low = data[3].toBigDecimal(),
