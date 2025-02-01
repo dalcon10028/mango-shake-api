@@ -39,3 +39,10 @@ fun List<BigDecimal>.ema(
     }
     return result
 }
+
+fun List<BigDecimal>.emaSingle(
+    period: Int,
+    scale: Int = 10,
+    finalScale: Int = 2,
+    roundingMode: RoundingMode = RoundingMode.HALF_UP
+): BigDecimal? = this.ema(period, scale, finalScale, roundingMode).lastOrNull()
