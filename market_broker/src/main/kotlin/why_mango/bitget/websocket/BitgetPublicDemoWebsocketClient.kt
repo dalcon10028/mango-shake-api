@@ -30,10 +30,7 @@ class BitgetPublicDemoWebsocketClient(
     private val request = Request.Builder()
         .url(bitgetProperties.websocketPublicUrl)
         .build()
-    private val client = OkHttpClient().newBuilder()
-        .readTimeout(2, MINUTES)
-        .pingInterval(30, SECONDS)
-        .build()
+    private lateinit var client: OkHttpClient
     private lateinit var webSocket: WebSocket
     private val gson: Gson = GsonBuilder()
         .enableComplexMapKeySerialization()
@@ -53,6 +50,13 @@ class BitgetPublicDemoWebsocketClient(
     }
 
     fun connect() {
+        client = OkHttpClient().newBuilder()
+            .connectTimeout(10, MINUTES)
+            .writeTimeout(10, MINUTES)
+            .readTimeout(10, MINUTES)
+            .pingInterval(30, SECONDS)
+            .build()
+
         webSocket = client.newWebSocket(request, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 logger.info { "Connected to bitget WebSocket" }
@@ -73,7 +77,6 @@ class BitgetPublicDemoWebsocketClient(
                         instId = "SXRPSUSDT"
                     )
                 }
-
                 webSocket.send(gson.toJson(subscribeMessage))
             }
 
@@ -93,10 +96,12 @@ class BitgetPublicDemoWebsocketClient(
                 logger.debug { "Received bytes: $bytes" }
             }
 
-            override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
-                webSocket.close(NORMAL_CLOSURE_STATUS, null)
-                webSocket.cancel()
-                logger.info { "Closing WebSocket connection with code $code and reason $reason" }
+            override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+                logger.info { "Closed WebSocket connection with code $code and reason $reason" }
+                isRunning = false
+                pingJob?.cancel()  // 종료 시에도 pingJob 취소
+
+                reconnect()
             }
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
@@ -110,6 +115,8 @@ class BitgetPublicDemoWebsocketClient(
                 reconnect()
             }
         })
+
+        client.dispatcher.executorService.shutdown()
     }
 
     private fun handleResponse(channel: String, json: JsonElement?) {
@@ -148,8 +155,8 @@ class BitgetPublicDemoWebsocketClient(
         pingJob = scope.launch {
             while (isRunning) {
                 delay(30_000)
-                logger.debug { "Sent ping message" }
-//                webSocket.send("ping")
+                logger.info { "Sent ping message" }
+                webSocket.send("ping")
             }
         }
     }
