@@ -107,6 +107,7 @@ class BitgetPublicDemoWebsocketClient(
                 if (t is EOFException) {
                     logger.warn { "Server closed the WebSocket connection. Attempting to reconnect..." }
                 }
+                reconnect()
             }
         })
     }
