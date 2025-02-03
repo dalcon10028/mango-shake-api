@@ -32,7 +32,9 @@ class StefanoTradingMachine(
     private val publisher: ApplicationEventPublisher,
 ) : StrategyStateMachine {
     private val logger = KotlinLogging.logger {}
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+    @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
+    private val scope = CoroutineScope(newSingleThreadContext("stefano-event-loop") + SupervisorJob())
     override var state: TradeState = Waiting
 
     private val priceFlow = publicRealtimeClient.priceEventFlow
@@ -144,6 +146,10 @@ class StefanoTradingMachine(
                 }
             }
             .collect()
+    }
+
+    suspend fun resetState() {
+        state = Waiting
     }
 
     override suspend fun waiting(event: StrategyEvent): TradeState {
