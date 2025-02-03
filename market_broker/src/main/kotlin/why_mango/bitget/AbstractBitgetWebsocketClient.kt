@@ -19,19 +19,27 @@ abstract class AbstractBitgetWebsocketClient(
     private val baseUrl: String,
 ) {
     protected val logger = KotlinLogging.logger {}
-    private val client = OkHttpClient().newBuilder()
-        .pingInterval(10, SECONDS)
-        .build()
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private lateinit var webSocket: WebSocket
+    @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
+    private val scope = CoroutineScope(newSingleThreadContext(this::class.simpleName!!) + SupervisorJob())
     protected val gson: Gson = GsonBuilder()
         .enableComplexMapKeySerialization()
         .registerTypeAdapter(BigDecimal::class.java, NumberStringSerializer)
         .create()
     protected var isRunning = false
+    protected var pingJob: Job? = null
+    private lateinit var client: OkHttpClient
+    private lateinit var webSocket: WebSocket
 
 
     fun connect() {
+
+        client = OkHttpClient().newBuilder()
+            .connectTimeout(30, SECONDS)
+            .writeTimeout(30, SECONDS)
+            .readTimeout(30, SECONDS)
+            .pingInterval(30, SECONDS)
+            .build()
+
         val request = Request.Builder()
             .url(baseUrl)
             .build()
@@ -40,6 +48,9 @@ abstract class AbstractBitgetWebsocketClient(
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 logger.info { "Connected to Bitget WebSocket ($baseUrl)" }
                 isRunning = true
+
+                // 기존 pingJob이 있다면 취소 후 재시작
+                pingJob?.cancel()
                 startPingJob()
 
                 val loginRequest: BitgetLoginRequest? = login()
@@ -51,8 +62,6 @@ abstract class AbstractBitgetWebsocketClient(
             }
 
             override fun onMessage(webSocket: WebSocket, text: String) {
-                logger.debug { "Received message: $text" }
-
                 if (text == "pong") {
                     logger.debug { "Received pong message" }
                     return
@@ -101,6 +110,8 @@ abstract class AbstractBitgetWebsocketClient(
                 reconnect()
             }
         })
+
+        client.dispatcher.executorService.shutdown()
     }
 
     /**

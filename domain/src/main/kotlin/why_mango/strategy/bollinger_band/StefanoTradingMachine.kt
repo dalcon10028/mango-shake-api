@@ -82,70 +82,80 @@ class StefanoTradingMachine(
     private val positionFlow = privateRealtimeClient.historyPositionEventFlow
 
     @OptIn(FlowPreview::class)
-    fun subscribeEventFlow() = scope.launch {
-        combine(
-            emaCrossIndicator(12, 26, 5),
-            jmaSlopeFlow(),
-            macdCrossIndicator(),
-            candleSticksFlow(),
-            priceFlow,
-        ) { emaCross, jmaSlope, macd, candle, price ->
-            require(jmaSlope != null) { "jmaSlope is null" }
-            StefanoTrade(emaCross, jmaSlope, macd, price)
-        }
-            .sample(1000)
-            .onEach { logger.debug { "StefanoTrade: $it" } }
-            .filter { state == Waiting }
-            .onEach {
-                when {
-                    it.emaCross == GOLDEN_CROSS && it.jmaSlope > BigDecimal.ZERO -> {
-                        logger.info { "openLong: $it" }
-                        bitgetFutureService.openLong(
-                            "SXRPSUSDT",
-                            size = 2000.toBigDecimal(),
-                            price = it.price
-                        )
-                        state = Holding
-                        publisher.publishEvent(
-                            SlackEvent(
-                                topic = Topic.NOTIFICATION,
-                                title = "Request open long position",
-                                color = Color.GOOD,
-                                fields = listOf(
-                                    Field("price", it.price.toString()),
-                                    Field("emaCross", it.emaCross.toString()),
-                                    Field("jmaSlope", it.jmaSlope.toString()),
-                                    Field("macdCross", it.macdCross.toString())
+    fun subscribeEventFlow() {
+        scope.launch {
+            combine(
+                emaCrossIndicator(12, 26, 5),
+                jmaSlopeFlow(),
+                macdCrossIndicator(),
+                candleSticksFlow(),
+                priceFlow,
+            ) { emaCross, jmaSlope, macd, candle, price ->
+                require(jmaSlope != null) { "jmaSlope is null" }
+                StefanoTrade(emaCross, jmaSlope, macd, price)
+            }
+                .sample(1000)
+                .onEach { logger.debug { "StefanoTrade: $it" } }
+                .filter { state == Waiting }
+                .onEach {
+                    when {
+                        it.emaCross == GOLDEN_CROSS && it.jmaSlope > BigDecimal.ZERO -> {
+                            logger.info { "openLong: $it" }
+                            bitgetFutureService.openLong(
+                                "SXRPSUSDT",
+                                size = 2000.toBigDecimal(),
+                                price = it.price
+                            )
+                            state = Holding
+                            publisher.publishEvent(
+                                SlackEvent(
+                                    topic = Topic.NOTIFICATION,
+                                    title = "Request open long position",
+                                    color = Color.GOOD,
+                                    fields = listOf(
+                                        Field("price", it.price.toString()),
+                                        Field("emaCross", it.emaCross.toString()),
+                                        Field("jmaSlope", it.jmaSlope.toString()),
+                                        Field("macdCross", it.macdCross.toString())
+                                    )
                                 )
                             )
-                        )
-                    }
+                        }
 
-                    it.emaCross == DEATH_CROSS && it.jmaSlope < BigDecimal.ZERO -> {
-                        logger.info { "openShort: $it" }
-                        bitgetFutureService.openShort(
-                            "SXRPSUSDT",
-                            size = 2000.toBigDecimal(),
-                            price = it.price
-                        )
-                        state = Holding
-                        publisher.publishEvent(
-                            SlackEvent(
-                                topic = Topic.NOTIFICATION,
-                                title = "Request open short position",
-                                color = Color.DANGER,
-                                fields = listOf(
-                                    Field("price", it.price.toString()),
-                                    Field("emaCross", it.emaCross.toString()),
-                                    Field("jmaSlope", it.jmaSlope.toString()),
-                                    Field("macdCross", it.macdCross.toString())
+                        it.emaCross == DEATH_CROSS && it.jmaSlope < BigDecimal.ZERO -> {
+                            logger.info { "openShort: $it" }
+                            bitgetFutureService.openShort(
+                                "SXRPSUSDT",
+                                size = 2000.toBigDecimal(),
+                                price = it.price
+                            )
+                            state = Holding
+                            publisher.publishEvent(
+                                SlackEvent(
+                                    topic = Topic.NOTIFICATION,
+                                    title = "Request open short position",
+                                    color = Color.DANGER,
+                                    fields = listOf(
+                                        Field("price", it.price.toString()),
+                                        Field("emaCross", it.emaCross.toString()),
+                                        Field("jmaSlope", it.jmaSlope.toString()),
+                                        Field("macdCross", it.macdCross.toString())
+                                    )
                                 )
                             )
-                        )
+                        }
                     }
                 }
-            }
-            .collect()
+                .collect()
+        }
+
+        scope.launch {
+            positionFlow
+                .onEach { logger.info { "positionFlow: $it" } }
+                .filter { state == Holding }
+                .onEach { state = Waiting }
+                .collect()
+        }
     }
 
     suspend fun resetState() {

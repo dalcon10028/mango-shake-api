@@ -1,4 +1,4 @@
-package why_mango.operation
+package why_mango.admin.operation
 
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestMapping

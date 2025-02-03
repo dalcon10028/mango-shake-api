@@ -15,8 +15,8 @@ class WebSocketInitializer(
 ) {
     @Bean
     suspend fun applicationRunner() = ApplicationRunner {
+        privateClient.connect()
         publicClient.connect()
-//        privateClient.connect()
         machine.subscribeEventFlow()
     }
 }

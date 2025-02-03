@@ -19,7 +19,6 @@ import why_mango.bitget.dto.websocket.push_event.CandleStickPushEvent
 import why_mango.bitget.dto.websocket.push_event.TickerPushEvent
 import why_mango.serialization.gson.NumberStringSerializer
 import java.math.BigDecimal
-import java.util.concurrent.TimeUnit.MINUTES
 
 @Component
 class BitgetPublicDemoWebsocketClient(
@@ -45,15 +44,11 @@ class BitgetPublicDemoWebsocketClient(
     val candlestickEventFlow
         get() = _candlestickSharedFlow.asSharedFlow()
 
-    companion object {
-        private const val NORMAL_CLOSURE_STATUS = 1000
-    }
-
     fun connect() {
         client = OkHttpClient().newBuilder()
-            .connectTimeout(10, MINUTES)
-            .writeTimeout(10, MINUTES)
-            .readTimeout(10, MINUTES)
+            .connectTimeout(30, SECONDS)
+            .writeTimeout(30, SECONDS)
+            .readTimeout(30, SECONDS)
             .pingInterval(30, SECONDS)
             .build()
 
