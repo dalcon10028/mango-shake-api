@@ -224,7 +224,7 @@ fun List<BigDecimal>.emaCross(short: Int, long: Int, window: Int = 6): List<Cros
 
         when {
             shortStart < longStart && shortEnd > longEnd -> GOLDEN_CROSS
-            shortStart > longStart && shortEnd < longEnd -> DEAD_CROSS
+            shortStart > longStart && shortEnd < longEnd -> DEATH_CROSS
             else -> NONE
         }
     }

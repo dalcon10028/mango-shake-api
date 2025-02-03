@@ -18,7 +18,6 @@ import why_mango.strategy.enums.CrossResult
 import why_mango.strategy.enums.CrossResult.*
 import why_mango.strategy.indicator.*
 import why_mango.utils.groupBy
-import why_mango.utils.toLocalDateTime
 import why_mango.utils.windowed
 import java.math.BigDecimal
 
@@ -82,10 +81,6 @@ class StefanoTradingMachine(
 
     @OptIn(FlowPreview::class)
     fun subscribeEventFlow() = scope.launch {
-//        candleSticks().collect {
-//            logger.info { "candleSticks: $it" }
-//        }
-
         combine(
             emaCrossIndicator(12, 26, 5),
             jmaSlopeFlow(),
@@ -99,28 +94,54 @@ class StefanoTradingMachine(
             .sample(1000)
             .onEach { logger.debug { "StefanoTrade: $it" } }
             .filter { state == Waiting }
-            .filter { it.emaCross == GOLDEN_CROSS && it.macdCross == GOLDEN_CROSS && it.jmaSlope > BigDecimal.ZERO }
             .onEach {
-                logger.info { "openLong: $it" }
-                bitgetFutureService.openLong(
-                    "SXRPSUSDT",
-                    size = 200.toBigDecimal(),
-                    price = it.price
-                )
-                state = Holding
-                publisher.publishEvent(
-                    SlackEvent(
-                        topic = Topic.NOTIFICATION,
-                        title = "Request open long position",
-                        color = Color.GOOD,
-                        fields = listOf(
-                            Field("price", it.price.toString()),
-                            Field("emaCross", it.emaCross.toString()),
-                            Field("jmaSlope", it.jmaSlope.toString()),
-                            Field("macdCross", it.macdCross.toString())
+                when {
+                    it.emaCross == GOLDEN_CROSS && it.jmaSlope > BigDecimal.ZERO -> {
+                        logger.info { "openLong: $it" }
+                        bitgetFutureService.openLong(
+                            "SXRPSUSDT",
+                            size = 2000.toBigDecimal(),
+                            price = it.price
                         )
-                    )
-                )
+                        state = Holding
+                        publisher.publishEvent(
+                            SlackEvent(
+                                topic = Topic.NOTIFICATION,
+                                title = "Request open long position",
+                                color = Color.GOOD,
+                                fields = listOf(
+                                    Field("price", it.price.toString()),
+                                    Field("emaCross", it.emaCross.toString()),
+                                    Field("jmaSlope", it.jmaSlope.toString()),
+                                    Field("macdCross", it.macdCross.toString())
+                                )
+                            )
+                        )
+                    }
+
+                    it.emaCross == DEATH_CROSS && it.jmaSlope < BigDecimal.ZERO -> {
+                        logger.info { "openShort: $it" }
+                        bitgetFutureService.openShort(
+                            "SXRPSUSDT",
+                            size = 2000.toBigDecimal(),
+                            price = it.price
+                        )
+                        state = Holding
+                        publisher.publishEvent(
+                            SlackEvent(
+                                topic = Topic.NOTIFICATION,
+                                title = "Request open short position",
+                                color = Color.DANGER,
+                                fields = listOf(
+                                    Field("price", it.price.toString()),
+                                    Field("emaCross", it.emaCross.toString()),
+                                    Field("jmaSlope", it.jmaSlope.toString()),
+                                    Field("macdCross", it.macdCross.toString())
+                                )
+                            )
+                        )
+                    }
+                }
             }
             .collect()
     }

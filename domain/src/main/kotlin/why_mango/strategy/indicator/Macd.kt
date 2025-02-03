@@ -110,7 +110,7 @@ fun List<BigDecimal>.macdCross(
     return macdResults.windowed(window).map { (prev, curr) ->
         when {
             prev.macd < prev.signal && curr.macd > curr.signal -> GOLDEN_CROSS
-            prev.macd > prev.signal && curr.macd < curr.signal -> DEAD_CROSS
+            prev.macd > prev.signal && curr.macd < curr.signal -> DEATH_CROSS
             else -> NONE
         }
     }
