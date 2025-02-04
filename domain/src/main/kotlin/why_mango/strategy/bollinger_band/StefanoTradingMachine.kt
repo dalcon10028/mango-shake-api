@@ -154,6 +154,7 @@ class StefanoTradingMachine(
                     }
                 }
                 .collect()
+
             positionFlow
                 .onEach { logger.info { "positionFlow: $it" } }
                 .filter { state == Holding }

@@ -20,7 +20,7 @@ class BitgetPrivateWebsocketClient(
 ) : AbstractBitgetWebsocketClient(
     baseUrl = bitgetProperties.websocketPrivateUrl,
 ) {
-    private val _historyPositionSharedFlow = MutableSharedFlow<CandleStickPushEvent>(replay = 200)
+    private val _historyPositionSharedFlow = MutableSharedFlow<HistoryPositionPushEvent>(replay = 200)
     private val mac: Mac = Mac.getInstance("HmacSHA256").also {
         it.init(
             bitgetProperties.secretKey.toByteArray(charset("UTF-8"))
@@ -58,8 +58,9 @@ class BitgetPrivateWebsocketClient(
     override fun handleMessage(channel: String, json: JsonElement?) {
         when (channel) {
             HistoryPositionChannel.HISTORY_POSITION.value -> {
-                val parseJson = parseJson<List<HistoryPositionPushEvent>>(json)
-                logger.info { "HistoryPositionPushEvent: $parseJson" }
+                parseJson<List<HistoryPositionPushEvent>>(json).forEach {
+                    _historyPositionSharedFlow.tryEmit(it)
+                }
             }
 
             else -> {
