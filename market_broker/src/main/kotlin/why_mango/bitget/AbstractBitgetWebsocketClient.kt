@@ -21,7 +21,7 @@ abstract class AbstractBitgetWebsocketClient(
     protected val logger = KotlinLogging.logger {}
     @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
     private val scope = CoroutineScope(newSingleThreadContext(this::class.simpleName!!) + SupervisorJob())
-    protected val gson: Gson = GsonBuilder()
+    val gson: Gson = GsonBuilder()
         .enableComplexMapKeySerialization()
         .registerTypeAdapter(BigDecimal::class.java, NumberStringSerializer)
         .create()
@@ -136,7 +136,7 @@ abstract class AbstractBitgetWebsocketClient(
         }
     }
 
-    protected fun<T> parseJson(json: JsonElement?): T = gson.fromJson(json, object : TypeToken<T>() {}.type)
+    inline fun <reified T> parseJson(json: JsonElement?): T = gson.fromJson(json, object : TypeToken<T>() {}.type)
 
     protected open fun login(): BitgetLoginRequest? = null
 
