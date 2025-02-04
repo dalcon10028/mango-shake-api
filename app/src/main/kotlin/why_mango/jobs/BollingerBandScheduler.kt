@@ -4,11 +4,13 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import why_mango.strategy.bollinger_band.BollingerBandStrategyService
+import why_mango.strategy.bollinger_band.StefanoTradingMachine
 import java.time.LocalDateTime
 
 @Component
 class BollingerBandScheduler(
     private val strategyService: BollingerBandStrategyService,
+    private val stefanoTradingMachine: StefanoTradingMachine,
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -22,10 +24,10 @@ class BollingerBandScheduler(
     }
 
     /**
-     * 15분 마다 실행
+     * 1시간 마다 실행
      */
-//    @Scheduled(cron = "0 */15 * * * *", zone = "Asia/Seoul")
-//    suspend fun closePosition() {
-//        strategyService.close()
-//    }
+    @Scheduled(cron = "0 0 */1 * * *", zone = "Asia/Seoul")
+    suspend fun closePosition() {
+        stefanoTradingMachine.resetState()
+    }
 }

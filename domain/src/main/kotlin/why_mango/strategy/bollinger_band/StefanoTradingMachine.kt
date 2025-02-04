@@ -31,10 +31,13 @@ class StefanoTradingMachine(
     private val bitgetFutureService: BitgetFutureService,
     private val publisher: ApplicationEventPublisher,
 ) : StrategyStateMachine {
+    companion object {
+        private const val BALANCE_USD = 1000
+    }
+
     private val logger = KotlinLogging.logger {}
 
-    @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
-    private val scope = CoroutineScope(newSingleThreadContext("stefano-event-loop") + SupervisorJob())
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     override var state: TradeState = Waiting
 
     private val priceFlow = publicRealtimeClient.priceEventFlow
@@ -103,8 +106,10 @@ class StefanoTradingMachine(
                             logger.info { "openLong: $it" }
                             bitgetFutureService.openLong(
                                 "SXRPSUSDT",
-                                size = 2000.toBigDecimal(),
-                                price = it.price
+                                size = (BALANCE_USD.toBigDecimal() / it.price).setScale(0),
+                                price = it.price,
+                                presetStopSurplusPrice = it.price * 1.15.toBigDecimal(),
+                                presetStopLossPrice = it.price * 0.85.toBigDecimal()
                             )
                             state = Holding
                             publisher.publishEvent(
@@ -126,8 +131,10 @@ class StefanoTradingMachine(
                             logger.info { "openShort: $it" }
                             bitgetFutureService.openShort(
                                 "SXRPSUSDT",
-                                size = 2000.toBigDecimal(),
-                                price = it.price
+                                size = (BALANCE_USD.toBigDecimal() / it.price).setScale(0),
+                                price = it.price,
+                                presetStopSurplusPrice = it.price * 0.85.toBigDecimal(),
+                                presetStopLossPrice = it.price * 1.15.toBigDecimal()
                             )
                             state = Holding
                             publisher.publishEvent(
@@ -147,9 +154,6 @@ class StefanoTradingMachine(
                     }
                 }
                 .collect()
-        }
-
-        scope.launch {
             positionFlow
                 .onEach { logger.info { "positionFlow: $it" } }
                 .filter { state == Holding }
