@@ -26,8 +26,8 @@ class BollingerBandScheduler(
     /**
      * 1시간 마다 실행
      */
-//    @Scheduled(cron = "0 0 */1 * * *", zone = "Asia/Seoul")
-    suspend fun closePosition() {
-        stefanoTradingMachine.resetState()
+    @Scheduled(cron = "0 0 */1 * * *", zone = "Asia/Seoul")
+    suspend fun checkStatus() {
+        logger.info { "### checkStatus STATUS: ${stefanoTradingMachine.state}" }
     }
 }
