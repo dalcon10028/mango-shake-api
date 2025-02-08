@@ -108,8 +108,8 @@ class StefanoTradingMachine(
                                 "SXRPSUSDT",
                                 size = (BALANCE_USD.toBigDecimal() / it.price).setScale(0),
                                 price = it.price,
-                                presetStopSurplusPrice = it.price * 1.15.toBigDecimal(),
-                                presetStopLossPrice = it.price * 0.85.toBigDecimal()
+                                presetStopSurplusPrice = it.price * 1.15.toBigDecimal().setScale(3),
+                                presetStopLossPrice = it.price * 0.85.toBigDecimal().setScale(3)
                             )
                             state = Holding
                             publisher.publishEvent(
@@ -133,8 +133,8 @@ class StefanoTradingMachine(
                                 "SXRPSUSDT",
                                 size = (BALANCE_USD.toBigDecimal() / it.price).setScale(0),
                                 price = it.price,
-                                presetStopSurplusPrice = it.price * 0.85.toBigDecimal(),
-                                presetStopLossPrice = it.price * 1.15.toBigDecimal()
+                                presetStopSurplusPrice = it.price * 0.85.toBigDecimal().setScale(3),
+                                presetStopLossPrice = it.price * 1.15.toBigDecimal().setScale(3)
                             )
                             state = Holding
                             publisher.publishEvent(
@@ -152,6 +152,19 @@ class StefanoTradingMachine(
                             )
                         }
                     }
+                }
+                .catch { e ->
+                    logger.error(e) { "error" }
+                    publisher.publishEvent(
+                        SlackEvent(
+                            topic = Topic.NOTIFICATION,
+                            title = "Error",
+                            color = Color.DANGER,
+                            fields = listOf(
+                                Field("error", e.message ?: "unknown")
+                            )
+                        )
+                    )
                 }
                 .collect()
 
