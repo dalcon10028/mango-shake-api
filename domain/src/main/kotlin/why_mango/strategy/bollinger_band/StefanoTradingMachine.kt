@@ -108,20 +108,20 @@ class StefanoTradingMachine(
                                 "SXRPSUSDT",
                                 size = (BALANCE_USD.toBigDecimal() / it.price).setScale(0),
                                 price = it.price,
-                                presetStopSurplusPrice = it.price * 1.15.toBigDecimal().setScale(3),
-                                presetStopLossPrice = it.price * 0.85.toBigDecimal().setScale(3)
+//                                presetStopSurplusPrice = it.price * 1.15.toBigDecimal().setScale(3),
+//                                presetStopLossPrice = it.price * 0.85.toBigDecimal().setScale(3)
                             )
                             state = Holding
                             publisher.publishEvent(
                                 SlackEvent(
-                                    topic = Topic.NOTIFICATION,
+                                    topic = Topic.TRADER,
                                     title = "Request open long position",
                                     color = Color.GOOD,
                                     fields = listOf(
-                                        Field("price", it.price.toString()),
-                                        Field("emaCross", it.emaCross.toString()),
-                                        Field("jmaSlope", it.jmaSlope.toString()),
-                                        Field("macdCross", it.macdCross.toString())
+                                        Field("price", it.price),
+                                        Field("emaCross", it.emaCross),
+                                        Field("jmaSlope", it.jmaSlope),
+                                        Field("macdCross", it.macdCross)
                                     )
                                 )
                             )
@@ -133,20 +133,20 @@ class StefanoTradingMachine(
                                 "SXRPSUSDT",
                                 size = (BALANCE_USD.toBigDecimal() / it.price).setScale(0),
                                 price = it.price,
-                                presetStopSurplusPrice = it.price * 0.85.toBigDecimal().setScale(3),
-                                presetStopLossPrice = it.price * 1.15.toBigDecimal().setScale(3)
+//                                presetStopSurplusPrice = it.price * 0.85.toBigDecimal().setScale(3),
+//                                presetStopLossPrice = it.price * 1.15.toBigDecimal().setScale(3)
                             )
                             state = Holding
                             publisher.publishEvent(
                                 SlackEvent(
-                                    topic = Topic.NOTIFICATION,
+                                    topic = Topic.TRADER,
                                     title = "Request open short position",
                                     color = Color.DANGER,
                                     fields = listOf(
-                                        Field("price", it.price.toString()),
-                                        Field("emaCross", it.emaCross.toString()),
-                                        Field("jmaSlope", it.jmaSlope.toString()),
-                                        Field("macdCross", it.macdCross.toString())
+                                        Field("price", it.price),
+                                        Field("emaCross", it.emaCross),
+                                        Field("jmaSlope", it.jmaSlope),
+                                        Field("macdCross", it.macdCross)
                                     )
                                 )
                             )
@@ -157,7 +157,7 @@ class StefanoTradingMachine(
                     logger.error(e) { "error" }
                     publisher.publishEvent(
                         SlackEvent(
-                            topic = Topic.NOTIFICATION,
+                            topic = Topic.ERROR,
                             title = "Error",
                             color = Color.DANGER,
                             fields = listOf(

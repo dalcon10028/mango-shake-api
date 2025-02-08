@@ -8,15 +8,18 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
 import okhttp3.*
 import okio.EOFException
+import org.springframework.context.ApplicationEventPublisher
 import why_mango.bitget.dto.*
 import why_mango.bitget.dto.websocket.BitgetLoginRequest
 import why_mango.bitget.dto.websocket.BitgetSubscribeRequest
+import why_mango.component.slack.*
 import why_mango.serialization.gson.NumberStringSerializer
 import java.math.BigDecimal
 import java.util.concurrent.TimeUnit.SECONDS
 
 abstract class AbstractBitgetWebsocketClient(
     private val baseUrl: String,
+    private val publisher: ApplicationEventPublisher,
 ) {
     protected val logger = KotlinLogging.logger {}
     @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
@@ -86,6 +89,12 @@ abstract class AbstractBitgetWebsocketClient(
 
                     "error" -> {
                         logger.error { "Error response received: [${response.code}]: ${response.msg}" }
+                        publisher.publishEvent(SlackEvent(
+                            topic = Topic.ERROR,
+                            title = "Bitget WebSocket Error",
+                            color = Color.DANGER,
+                            message = "Error Bitget Websocket response received: [${response.code}]: ${response.msg}",
+                        ))
                     }
 
                     null -> handleMessage(response.arg.channel, response.data)

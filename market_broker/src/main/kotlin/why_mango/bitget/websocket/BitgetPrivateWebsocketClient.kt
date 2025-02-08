@@ -6,6 +6,7 @@ import why_mango.bitget.dto.websocket.push_event.*
 import java.util.*
 
 import com.google.gson.JsonElement
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import why_mango.bitget.AbstractBitgetWebsocketClient
 import why_mango.bitget.config.BitgetProperties
@@ -17,8 +18,10 @@ import javax.crypto.spec.SecretKeySpec
 @Component
 class BitgetPrivateWebsocketClient(
     private val bitgetProperties: BitgetProperties,
+    private val pulisher: ApplicationEventPublisher,
 ) : AbstractBitgetWebsocketClient(
     baseUrl = bitgetProperties.websocketPrivateUrl,
+    pulisher
 ) {
     private val _historyPositionSharedFlow = MutableSharedFlow<HistoryPositionPushEvent>(replay = 200)
     private val mac: Mac = Mac.getInstance("HmacSHA256").also {
