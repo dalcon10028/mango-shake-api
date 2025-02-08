@@ -45,6 +45,12 @@ dependencies {
 	implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:$springDocVersion")
 	implementation("org.springdoc:springdoc-openapi-starter-webflux-api:$springDocVersion")
 
+	// slask
+	implementation("com.slack.api:bolt-socket-mode:1.45.2")
+	implementation("javax.websocket:javax.websocket-api:1.1")
+	implementation("org.glassfish.tyrus.bundles:tyrus-standalone-client:1.20")
+	implementation("ch.qos.logback:logback-classic:1.4.12")
+
 	// metrics
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 

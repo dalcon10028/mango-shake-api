@@ -109,7 +109,7 @@ class StefanoTradingMachine(
                                 "SXRPSUSDT",
                                 size = (BALANCE_USD.toBigDecimal() / it.price).setScale(0),
                                 price = it.price,
-                                presetStopSurplusPrice = (it.price * 1.15.toBigDecimal()).setScale(3, RoundingMode.FLOOR),
+                                presetStopSurplusPrice = (it.price * 1.10.toBigDecimal()).setScale(3, RoundingMode.FLOOR),
                                 presetStopLossPrice = (it.price * 0.85.toBigDecimal()).setScale(3, RoundingMode.FLOOR)
                             )
                             state = Holding
@@ -135,7 +135,7 @@ class StefanoTradingMachine(
                                 size = (BALANCE_USD.toBigDecimal() / it.price).setScale(0),
                                 price = it.price,
                                 presetStopSurplusPrice = (it.price * 0.85.toBigDecimal()).setScale(3, RoundingMode.FLOOR),
-                                presetStopLossPrice = (it.price * 1.15.toBigDecimal()).setScale(3, RoundingMode.FLOOR)
+                                presetStopLossPrice = (it.price * 1.10.toBigDecimal()).setScale(3, RoundingMode.FLOOR)
                             )
                             state = Holding
                             publisher.publishEvent(
@@ -168,12 +168,14 @@ class StefanoTradingMachine(
                     )
                 }
                 .collect()
+        }
 
+        scope.launch {
             positionFlow
+                .onEach { logger.info { "position: $it" } }
                 .filter { state == Holding }
                 .onEach {
                     state = Waiting
-
                     publisher.publishEvent(
                         SlackEvent(
                             topic = Topic.TRADER,
@@ -192,6 +194,11 @@ class StefanoTradingMachine(
                 }
                 .collect()
         }
+    }
+
+    suspend fun closeAll() {
+        logger.info { "🧽 close all positions" }
+        bitgetFutureService.flashClose("SXRPSUSDT")
     }
 
     suspend fun resetState() {

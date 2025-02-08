@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    val slackVersion by extra { "1.43.1" }
+    val slackVersion by extra { "1.45.2" }
 
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
