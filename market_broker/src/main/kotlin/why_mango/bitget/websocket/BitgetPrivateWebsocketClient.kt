@@ -1,17 +1,19 @@
 package why_mango.bitget.websocket
 
+import java.util.*
 import kotlinx.coroutines.flow.*
 import why_mango.bitget.dto.websocket.*
+import why_mango.bitget.enums.WebsocketAction.*
 import why_mango.bitget.dto.websocket.push_event.*
-import java.util.*
+import why_mango.bitget.enums.HistoryPositionChannel.*
 
 import com.google.gson.JsonElement
+import why_mango.bitget.enums.WebsocketAction
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import why_mango.bitget.AbstractBitgetWebsocketClient
 import why_mango.bitget.config.BitgetProperties
 import why_mango.bitget.dto.websocket.subscribeChannels
-import why_mango.bitget.enums.HistoryPositionChannel
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
@@ -35,7 +37,7 @@ class BitgetPrivateWebsocketClient(
 
     override fun subscriptionMessage(): BitgetSubscribeRequest = subscribeChannels {
         channel(
-            channel = HistoryPositionChannel.HISTORY_POSITION,
+            channel = HISTORY_POSITION,
             instId = "default"
         )
     }
@@ -58,14 +60,14 @@ class BitgetPrivateWebsocketClient(
         )
     }
 
-    override fun handleMessage(channel: String, json: JsonElement?) {
-        when (channel) {
-            HistoryPositionChannel.HISTORY_POSITION.value -> {
+    override fun handleMessage(channel: String, action: WebsocketAction, json: JsonElement?) {
+        when {
+            channel == HISTORY_POSITION.value && action == UPDATE -> {
                 parseJson<List<HistoryPositionPushEvent>>(json).forEach {
                     _historyPositionSharedFlow.tryEmit(it)
                 }
             }
-
+            channel == HISTORY_POSITION.value && action == SNAPSHOT -> {}
             else -> {
                 logger.warn { "Unknown channel: $channel" }
             }

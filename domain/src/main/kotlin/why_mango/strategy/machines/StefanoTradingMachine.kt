@@ -20,6 +20,7 @@ import why_mango.strategy.indicator.*
 import why_mango.utils.groupBy
 import why_mango.utils.windowed
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 /**
  * 스테파노 매매법
@@ -108,8 +109,8 @@ class StefanoTradingMachine(
                                 "SXRPSUSDT",
                                 size = (BALANCE_USD.toBigDecimal() / it.price).setScale(0),
                                 price = it.price,
-//                                presetStopSurplusPrice = it.price * 1.15.toBigDecimal().setScale(3),
-//                                presetStopLossPrice = it.price * 0.85.toBigDecimal().setScale(3)
+                                presetStopSurplusPrice = (it.price * 1.15.toBigDecimal()).setScale(3, RoundingMode.FLOOR),
+                                presetStopLossPrice = (it.price * 0.85.toBigDecimal()).setScale(3, RoundingMode.FLOOR)
                             )
                             state = Holding
                             publisher.publishEvent(
@@ -133,8 +134,8 @@ class StefanoTradingMachine(
                                 "SXRPSUSDT",
                                 size = (BALANCE_USD.toBigDecimal() / it.price).setScale(0),
                                 price = it.price,
-//                                presetStopSurplusPrice = it.price * 0.85.toBigDecimal().setScale(3),
-//                                presetStopLossPrice = it.price * 1.15.toBigDecimal().setScale(3)
+                                presetStopSurplusPrice = (it.price * 0.85.toBigDecimal()).setScale(3, RoundingMode.FLOOR),
+                                presetStopLossPrice = (it.price * 1.15.toBigDecimal()).setScale(3, RoundingMode.FLOOR)
                             )
                             state = Holding
                             publisher.publishEvent(
@@ -169,9 +170,26 @@ class StefanoTradingMachine(
                 .collect()
 
             positionFlow
-                .onEach { logger.info { "positionFlow: $it" } }
                 .filter { state == Holding }
-                .onEach { state = Waiting }
+                .onEach {
+                    state = Waiting
+
+                    publisher.publishEvent(
+                        SlackEvent(
+                            topic = Topic.TRADER,
+                            title = "Position closed",
+                            color = if (it.achievedProfits > BigDecimal.ZERO) Color.GOOD else Color.DANGER,
+                            fields = listOf(
+                                Field("posId", it.posId),
+                                Field("Realized PnL", it.achievedProfits),
+                                Field("holdSide", it.holdSide),
+                                Field("openPriceAvg", it.openPriceAvg),
+                                Field("openFee", it.openFee),
+                                Field("closeFee", it.closeFee),
+                            )
+                        )
+                    )
+                }
                 .collect()
         }
     }

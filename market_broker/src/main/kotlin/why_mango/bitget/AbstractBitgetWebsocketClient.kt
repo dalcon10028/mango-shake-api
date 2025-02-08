@@ -12,6 +12,7 @@ import org.springframework.context.ApplicationEventPublisher
 import why_mango.bitget.dto.*
 import why_mango.bitget.dto.websocket.BitgetLoginRequest
 import why_mango.bitget.dto.websocket.BitgetSubscribeRequest
+import why_mango.bitget.enums.WebsocketAction
 import why_mango.component.slack.*
 import why_mango.serialization.gson.NumberStringSerializer
 import java.math.BigDecimal
@@ -35,7 +36,6 @@ abstract class AbstractBitgetWebsocketClient(
 
 
     fun connect() {
-
         client = OkHttpClient().newBuilder()
             .connectTimeout(30, SECONDS)
             .writeTimeout(30, SECONDS)
@@ -52,7 +52,6 @@ abstract class AbstractBitgetWebsocketClient(
                 logger.info { "🚀 Connected to Bitget WebSocket ($baseUrl)" }
                 isRunning = true
 
-                // 기존 pingJob이 있다면 취소 후 재시작
                 pingJob?.cancel()
                 startPingJob()
 
@@ -97,7 +96,10 @@ abstract class AbstractBitgetWebsocketClient(
                         ))
                     }
 
-                    null -> handleMessage(response.arg.channel, response.data)
+                    null -> {
+                        require(response.action != null) { "Action is required when event is null" }
+                        handleMessage(response.arg.channel, response.action, response.data)
+                    }
                 }
             }
 
@@ -138,7 +140,7 @@ abstract class AbstractBitgetWebsocketClient(
     private fun startPingJob() {
         scope.launch {
             while (isRunning) {
-                delay(10_000)
+                delay(30_000)
                 logger.debug { "Sent ping message" }
                 webSocket.send("ping")
             }
@@ -151,5 +153,5 @@ abstract class AbstractBitgetWebsocketClient(
 
     protected abstract fun subscriptionMessage(): BitgetSubscribeRequest
 
-    protected abstract fun handleMessage(channel: String, json: JsonElement?)
+    protected abstract fun handleMessage(channel: String, action: WebsocketAction, json: JsonElement?)
 }
