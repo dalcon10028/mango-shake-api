@@ -54,7 +54,7 @@ class BitgetPublicDemoWebsocketClient(
 
         webSocket = client.newWebSocket(request, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
-                logger.info { "Connected to bitget WebSocket" }
+                logger.info { "🚀 Connected to bitget WebSocket (${bitgetProperties.websocketPublicUrl})" }
                 isRunning = true
 
                 // 기존 pingJob이 있다면 취소 후 재시작
@@ -77,13 +77,13 @@ class BitgetPublicDemoWebsocketClient(
 
             override fun onMessage(webSocket: WebSocket, text: String) {
                 if (text == "pong") {
-                    logger.info { "Received pong message" }
+                    logger.debug { "📩 Received pong message" }
                     return
                 }
                 val baseType = object : TypeToken<BitgetWebsocketResponse<JsonElement>>() {}.type
                 val response: BitgetWebsocketResponse<JsonElement> = gson.fromJson(text, baseType)
                 response.event?.let {
-                    logger.info { "$it event received ${response.arg}" }
+                    logger.debug { "📩 $it event received ${response.arg}" }
                 } ?: handleResponse(response.arg.channel, response.data)
             }
 
@@ -100,7 +100,7 @@ class BitgetPublicDemoWebsocketClient(
             }
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-                logger.error(t) { "WebSocket failure" }
+                logger.error(t) { "🔥 WebSocket failure" }
                 isRunning = false
                 pingJob?.cancel()  // 실패 시에도 pingJob 취소
 
@@ -141,7 +141,7 @@ class BitgetPublicDemoWebsocketClient(
     }
 
     private fun reconnect() = scope.launch {
-        logger.warn { "Reconnecting WebSocket in 5 seconds..." }
+        logger.warn { "🔄 Reconnecting WebSocket in 5 seconds..." }
         delay(5_000)
         connect()
     }
@@ -150,7 +150,7 @@ class BitgetPublicDemoWebsocketClient(
         pingJob = scope.launch {
             while (isRunning) {
                 delay(30_000)
-                logger.info { "Sent ping message" }
+                logger.debug { "📤 Sent ping message" }
                 webSocket.send("ping")
             }
         }

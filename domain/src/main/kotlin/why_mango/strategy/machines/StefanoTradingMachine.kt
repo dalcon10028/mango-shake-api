@@ -1,4 +1,4 @@
-package why_mango.strategy.bollinger_band
+package why_mango.strategy.machines
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service

@@ -49,7 +49,7 @@ abstract class AbstractBitgetWebsocketClient(
 
         webSocket = client.newWebSocket(request, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
-                logger.info { "Connected to Bitget WebSocket ($baseUrl)" }
+                logger.info { "🚀 Connected to Bitget WebSocket ($baseUrl)" }
                 isRunning = true
 
                 // 기존 pingJob이 있다면 취소 후 재시작
@@ -75,16 +75,16 @@ abstract class AbstractBitgetWebsocketClient(
 
                 when (response.event) {
                     "login" -> {
-                        logger.info { "Login response received" }
+                        logger.info { "🔑 Login response received" }
                         webSocket.send(gson.toJson(subscriptionMessage()))
                     }
 
                     "subscribe" -> {
-                        logger.info { "Subscription response received: ${response.arg}" }
+                        logger.info { "📡 Subscription response received: ${response.arg}" }
                     }
 
                     "unsubscribe" -> {
-                        logger.info { "Unsubscription response received: ${response.arg}" }
+                        logger.info { "📡 Unsubscription response received: ${response.arg}" }
                     }
 
                     "error" -> {

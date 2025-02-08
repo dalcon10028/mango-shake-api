@@ -4,7 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import why_mango.strategy.bollinger_band.BollingerBandStrategyService
-import why_mango.strategy.bollinger_band.StefanoTradingMachine
+import why_mango.strategy.machines.StefanoTradingMachine
 import java.time.LocalDateTime
 
 @Component

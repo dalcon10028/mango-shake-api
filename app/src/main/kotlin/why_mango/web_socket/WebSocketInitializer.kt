@@ -1,22 +1,26 @@
 package why_mango.web_socket
 
+import kotlinx.coroutines.*
 import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Bean
-import org.springframework.stereotype.Component
-import why_mango.bitget.websocket.BitgetPrivateWebsocketClient
-import why_mango.bitget.websocket.BitgetPublicDemoWebsocketClient
-import why_mango.strategy.bollinger_band.StefanoTradingMachine
+import org.springframework.context.annotation.Configuration
+import why_mango.bitget.websocket.*
+import why_mango.strategy.machines.StefanoTradingMachine
 
-@Component
+@Configuration
 class WebSocketInitializer(
     private val publicClient: BitgetPublicDemoWebsocketClient,
     private val privateClient: BitgetPrivateWebsocketClient,
     private val machine: StefanoTradingMachine,
+    private val bitgetWebSocketClient2: BitgetWebSocketClient2
 ) {
     @Bean
-    suspend fun applicationRunner() = ApplicationRunner {
-        privateClient.connect()
-        publicClient.connect()
-        machine.subscribeEventFlow()
+    fun applicationRunner() = ApplicationRunner {
+
+        runBlocking {
+            privateClient.connect()
+            publicClient.connect()
+            machine.subscribeEventFlow()
+        }
     }
 }
