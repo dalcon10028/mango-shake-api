@@ -9,6 +9,7 @@ import why_mango.strategy.*
 import kotlinx.coroutines.*
 import org.springframework.context.ApplicationEventPublisher
 import why_mango.bitget.BitgetFutureService
+import why_mango.bitget.dto.websocket.push_event.HistoryPositionPushEvent
 import why_mango.bitget.websocket.BitgetPrivateWebsocketClient
 import why_mango.component.slack.Color
 import why_mango.component.slack.Field
@@ -31,15 +32,16 @@ class StefanoTradingMachine(
     private val privateRealtimeClient: BitgetPrivateWebsocketClient,
     private val bitgetFutureService: BitgetFutureService,
     private val publisher: ApplicationEventPublisher,
-) : StrategyStateMachine {
+) {
     companion object {
         private const val BALANCE_USD = 1000
+        private const val SYMBOL = "SXRPSUSDT"
     }
 
     private val logger = KotlinLogging.logger {}
-
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    override var state: TradeState = Waiting
+    private var _state: TradeState = Waiting
+    val state get() = _state
 
     private val priceFlow = publicRealtimeClient.priceEventFlow
         .map { it.lastPr }
@@ -47,6 +49,12 @@ class StefanoTradingMachine(
 
     private suspend fun candleSticksFlow() = publicRealtimeClient.candlestickEventFlow
         .distinctUntilChangedBy { it.timestamp }
+
+    private suspend fun candleSticksFlow4h() = publicRealtimeClient.candlestickEventFlow4h
+        .distinctUntilChangedBy { it.timestamp }
+        .map { it.close }
+        .windowed(200)
+        .map { candles -> candles.sma(200) }
 
     private suspend fun emaCrossIndicator(short: Int, long: Int, window: Int) = publicRealtimeClient.candlestickEventFlow
         .distinctUntilChangedBy { it.timestamp }
@@ -91,67 +99,18 @@ class StefanoTradingMachine(
             combine(
                 emaCrossIndicator(12, 26, 5),
                 jmaSlopeFlow(),
-                macdCrossIndicator(),
-                candleSticksFlow(),
+                candleSticksFlow4h(),
                 priceFlow,
-            ) { emaCross, jmaSlope, macd, candle, price ->
+            ) { emaCross, jmaSlope, candle4h, price ->
                 require(jmaSlope != null) { "jmaSlope is null" }
-                StefanoTrade(emaCross, jmaSlope, macd, price)
+                StefanoTradeEvent(emaCross, jmaSlope, candle4h, price)
             }
                 .sample(1000)
-                .onEach { logger.debug { "StefanoTrade: $it" } }
-                .filter { state == Waiting }
                 .onEach {
-                    when {
-                        it.emaCross == GOLDEN_CROSS && it.jmaSlope > BigDecimal.ZERO -> {
-                            logger.info { "openLong: $it" }
-                            bitgetFutureService.openLong(
-                                "SXRPSUSDT",
-                                size = (BALANCE_USD.toBigDecimal() / it.price).setScale(0),
-                                price = it.price,
-                                presetStopSurplusPrice = (it.price * 1.10.toBigDecimal()).setScale(3, RoundingMode.FLOOR),
-                                presetStopLossPrice = (it.price * 0.85.toBigDecimal()).setScale(3, RoundingMode.FLOOR)
-                            )
-                            state = Holding
-                            publisher.publishEvent(
-                                SlackEvent(
-                                    topic = Topic.TRADER,
-                                    title = "Request open long position",
-                                    color = Color.GOOD,
-                                    fields = listOf(
-                                        Field("price", it.price),
-                                        Field("emaCross", it.emaCross),
-                                        Field("jmaSlope", it.jmaSlope),
-                                        Field("macdCross", it.macdCross)
-                                    )
-                                )
-                            )
-                        }
-
-                        it.emaCross == DEATH_CROSS && it.jmaSlope < BigDecimal.ZERO -> {
-                            logger.info { "openShort: $it" }
-                            bitgetFutureService.openShort(
-                                "SXRPSUSDT",
-                                size = (BALANCE_USD.toBigDecimal() / it.price).setScale(0),
-                                price = it.price,
-                                presetStopSurplusPrice = (it.price * 0.85.toBigDecimal()).setScale(3, RoundingMode.FLOOR),
-                                presetStopLossPrice = (it.price * 1.10.toBigDecimal()).setScale(3, RoundingMode.FLOOR)
-                            )
-                            state = Holding
-                            publisher.publishEvent(
-                                SlackEvent(
-                                    topic = Topic.TRADER,
-                                    title = "Request open short position",
-                                    color = Color.DANGER,
-                                    fields = listOf(
-                                        Field("price", it.price),
-                                        Field("emaCross", it.emaCross),
-                                        Field("jmaSlope", it.jmaSlope),
-                                        Field("macdCross", it.macdCross)
-                                    )
-                                )
-                            )
-                        }
+                    _state = when (state) {
+                        Waiting -> waiting(it)
+                        RequestingPosition -> requestingPosition(it)
+                        Holding -> state
                     }
                 }
                 .catch { e ->
@@ -173,24 +132,11 @@ class StefanoTradingMachine(
         scope.launch {
             positionFlow
                 .onEach { logger.info { "position: $it" } }
-                .filter { state == Holding }
                 .onEach {
-                    state = Waiting
-                    publisher.publishEvent(
-                        SlackEvent(
-                            topic = Topic.TRADER,
-                            title = "Position closed",
-                            color = if (it.achievedProfits > BigDecimal.ZERO) Color.GOOD else Color.DANGER,
-                            fields = listOf(
-                                Field("posId", it.posId),
-                                Field("Realized PnL", it.achievedProfits),
-                                Field("holdSide", it.holdSide),
-                                Field("openPriceAvg", it.openPriceAvg),
-                                Field("openFee", it.openFee),
-                                Field("closeFee", it.closeFee),
-                            )
-                        )
-                    )
+                    _state = when (state) {
+                        Holding -> holding(it)
+                        else -> state
+                    }
                 }
                 .collect()
         }
@@ -198,27 +144,91 @@ class StefanoTradingMachine(
 
     suspend fun closeAll() {
         logger.info { "🧽 close all positions" }
-        bitgetFutureService.flashClose("SXRPSUSDT")
+        bitgetFutureService.flashClose(SYMBOL)
     }
 
-    suspend fun resetState() {
-        state = Waiting
+    suspend fun waiting(stefano: StefanoTradeEvent): TradeState {
+        return when {
+            stefano.isLong -> {
+                bitgetFutureService.openLong(
+                    SYMBOL,
+                    size = (BALANCE_USD.toBigDecimal() / stefano.price).setScale(0),
+                    price = stefano.price,
+                    presetStopSurplusPrice = (stefano.price * 1.01.toBigDecimal()).setScale(3, RoundingMode.FLOOR),
+                    presetStopLossPrice = (stefano.price * 0.085.toBigDecimal()).setScale(3, RoundingMode.FLOOR)
+                )
+                publisher.publishEvent(
+                    SlackEvent(
+                        topic = Topic.TRADER,
+                        title = "Request open long position",
+                        color = Color.GOOD,
+                        fields = listOf(
+                            Field("price", stefano.price),
+                            Field("emaCross", stefano.emaCross),
+                            Field("jmaSlope", stefano.jmaSlope),
+                            Field("candle4h", stefano.candle4h)
+                        )
+                    )
+                )
+                Holding
+            }
+
+            stefano.isShort -> {
+                bitgetFutureService.openShort(
+                    SYMBOL,
+                    size = (BALANCE_USD.toBigDecimal() / stefano.price).setScale(0),
+                    price = stefano.price,
+                    presetStopSurplusPrice = (stefano.price * 0.085.toBigDecimal()).setScale(3, RoundingMode.FLOOR),
+                    presetStopLossPrice = (stefano.price * 1.01.toBigDecimal()).setScale(3, RoundingMode.FLOOR)
+                )
+                publisher.publishEvent(
+                    SlackEvent(
+                        topic = Topic.TRADER,
+                        title = "Request open short position",
+                        color = Color.DANGER,
+                        fields = listOf(
+                            Field("price", stefano.price),
+                            Field("emaCross", stefano.emaCross),
+                            Field("jmaSlope", stefano.jmaSlope),
+                            Field("macdCross", stefano.candle4h)
+                        )
+                    )
+                )
+                Holding
+            }
+
+            else -> state
+        }
     }
 
-    override suspend fun waiting(event: StrategyEvent): TradeState {
-        TODO("Not yet implemented")
+    suspend fun requestingPosition(event: StefanoTradeEvent): TradeState = state
+
+    suspend fun holding(event: HistoryPositionPushEvent): TradeState {
+        publisher.publishEvent(
+            SlackEvent(
+                topic = Topic.TRADER,
+                title = "Position closed",
+                color = if (event.achievedProfits > BigDecimal.ZERO) Color.GOOD else Color.DANGER,
+                fields = listOf(
+                    Field("posId", event.posId),
+                    Field("Realized PnL", event.achievedProfits),
+                    Field("holdSide", event.holdSide),
+                    Field("openPriceAvg", event.openPriceAvg),
+                    Field("openFee", event.openFee),
+                    Field("closeFee", event.closeFee),
+                )
+            )
+        )
+        return Waiting
     }
 
-    override suspend fun requestingPosition(event: StrategyEvent): TradeState = state
-
-    override suspend fun holding(event: StrategyEvent): TradeState {
-        TODO("Not yet implemented")
-    }
-
-    data class StefanoTrade(
+    data class StefanoTradeEvent(
         val emaCross: CrossResult,
         val jmaSlope: BigDecimal,
-        val macdCross: CrossResult,
+        val candle4h: BigDecimal,
         val price: BigDecimal,
-    )
+    ) {
+        val isLong: Boolean get() = emaCross == GOLDEN_CROSS && jmaSlope > BigDecimal.ZERO && price > candle4h
+        val isShort: Boolean get() = emaCross == DEATH_CROSS && jmaSlope < BigDecimal.ZERO && price < candle4h
+    }
 }

@@ -39,10 +39,14 @@ class BitgetPublicDemoWebsocketClient(
     private var pingJob: Job? = null
     private val _priceSharedFlow = MutableSharedFlow<TickerPushEvent>(replay = 1)
     private val _candlestickSharedFlow = MutableSharedFlow<CandleStickPushEvent>(replay = 500)
+    private val _CandlestickSharedFlow4h = MutableSharedFlow<CandleStickPushEvent>(replay = 200)
     val priceEventFlow
         get() = _priceSharedFlow.asSharedFlow()
     val candlestickEventFlow
         get() = _candlestickSharedFlow.asSharedFlow()
+    val candlestickEventFlow4h
+        get() = _CandlestickSharedFlow4h.asSharedFlow()
+
 
     fun connect() {
         client = OkHttpClient().newBuilder()
@@ -65,6 +69,10 @@ class BitgetPublicDemoWebsocketClient(
                 val subscribeMessage = subscribeChannels {
                     channel(
                         channel = CandleStickChannel.CANDLE_1MIN,
+                        instId = "SXRPSUSDT"
+                    )
+                    channel(
+                        channel = CandleStickChannel.CANDLE_4HOUR,
                         instId = "SXRPSUSDT"
                     )
                     channel(
@@ -126,6 +134,13 @@ class BitgetPublicDemoWebsocketClient(
                 gson.fromJson<List<List<String>>>(json, candlestickType)
                     .map { CandleStickPushEvent.from(it) }
                     .forEach { _candlestickSharedFlow.tryEmit(it) }
+            }
+
+            CandleStickChannel.CANDLE_4HOUR.value, -> {
+                val candlestickType = object : TypeToken<List<List<String>>>() {}.type
+                gson.fromJson<List<List<String>>>(json, candlestickType)
+                    .map { CandleStickPushEvent.from(it) }
+                    .forEach { _CandlestickSharedFlow4h.tryEmit(it) }
             }
 
             TickerChannel.TICKER.value -> {

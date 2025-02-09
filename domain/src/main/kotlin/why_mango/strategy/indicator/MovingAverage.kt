@@ -58,9 +58,9 @@ fun List<BigDecimal>.sma(
     period: Int,
     scale: Int = 10,
     roundingMode: RoundingMode = RoundingMode.HALF_UP
-): BigDecimal? {
+): BigDecimal {
     require(period > 0) { "Period must be positive" }
-    if (this.size < period) return null
+    require(this.size >= period) { "Not enough data to calculate SMA" }
 
     val sma = this.takeLast(period)
         .reduce(BigDecimal::add)
