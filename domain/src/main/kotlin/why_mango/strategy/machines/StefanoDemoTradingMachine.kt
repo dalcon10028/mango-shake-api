@@ -25,15 +25,15 @@ import java.math.RoundingMode
  * 스테파노 매매법
  */
 @Service
-class StefanoTradingMachine(
+class StefanoDemoTradingMachine(
     private val publicRealtimeClient: BitgetPublicWebsocketClient,
     private val privateRealtimeClient: BitgetPrivateWebsocketClient,
     private val bitgetFutureService: BitgetFutureService,
     private val publisher: ApplicationEventPublisher,
 ) {
     companion object {
-        private const val BALANCE_USD = 200
-        private const val SYMBOL = "XRPUSDT"
+        private const val BALANCE_USD = 1000
+        private const val SYMBOL = "SXRPSUSDT"
     }
 
     private val logger = KotlinLogging.logger {}
@@ -58,11 +58,33 @@ class StefanoTradingMachine(
         .map { candles -> candles.emaCross(short, long, window) }
         .map { it.last() }
 
+
+    private suspend fun macdCrossIndicator() = publicRealtimeClient.candlestickEventFlow
+        .distinctUntilChangedBy { it.timestamp }
+        .map { it.close }
+        .windowed(200)
+        .map { window -> window.macdCross() }
+        .map { it.last() }
+
     private suspend fun jmaSlopeFlow() = publicRealtimeClient.candlestickEventFlow
         .distinctUntilChangedBy { it.timestamp }
         .map { it.close }
         .windowed(200)
         .map { window -> window.jmaSlope() }
+
+    private suspend fun candleSticks() = publicRealtimeClient.candlestickEventFlow
+        .groupBy { it.timestamp }
+        .onEach {
+            logger.info {
+                "candleSticks: ${
+                    it.second.onEach {
+                        it.close
+                    }
+                }"
+            }
+        }
+        .map { (_, candles) -> candles.last() }
+        .map { it.close }
 
     @OptIn(FlowPreview::class)
     fun subscribeEventFlow() {
@@ -74,7 +96,6 @@ class StefanoTradingMachine(
                 priceFlow,
             ) { emaCross, jmaSlope, candle4h, price ->
                 require(jmaSlope != null) { "jmaSlope is null" }
-//                logger.info { "📈 emaCross: $emaCross, jmaSlope: $jmaSlope, candle4h: $candle4h, price: $price" }
                 StefanoTradeEvent(emaCross, jmaSlope, candle4h, price)
             }
                 .sample(1000)
@@ -90,7 +111,7 @@ class StefanoTradingMachine(
                     publisher.publishEvent(
                         SlackEvent(
                             topic = Topic.ERROR,
-                            title = "[$SYMBOL] Error",
+                            title = "Error",
                             color = Color.DANGER,
                             fields = listOf(
                                 Field("error", e.message ?: "unknown")
@@ -102,7 +123,7 @@ class StefanoTradingMachine(
         }
 
         scope.launch {
-            privateRealtimeClient.positionHistoryChannel[BitgetPrivateWebsocketClient.InstId.XRPUSDT]!!
+            privateRealtimeClient.positionHistoryChannel[BitgetPrivateWebsocketClient.InstId.SXRPSUSDT]!!
                 .onEach { logger.info { "position: $it" } }
                 .onEach {
                     _state = when (state) {
@@ -132,7 +153,7 @@ class StefanoTradingMachine(
                 publisher.publishEvent(
                     SlackEvent(
                         topic = Topic.TRADER,
-                        title = "[$SYMBOL] Request open long position",
+                        title = "Request open long position",
                         color = Color.GOOD,
                         fields = listOf(
                             Field("price", stefano.price),
@@ -156,7 +177,7 @@ class StefanoTradingMachine(
                 publisher.publishEvent(
                     SlackEvent(
                         topic = Topic.TRADER,
-                        title = "[$SYMBOL] Request open short position",
+                        title = "Request open short position",
                         color = Color.DANGER,
                         fields = listOf(
                             Field("price", stefano.price),
@@ -179,7 +200,7 @@ class StefanoTradingMachine(
         publisher.publishEvent(
             SlackEvent(
                 topic = Topic.TRADER,
-                title = "[$SYMBOL] Position closed",
+                title = "Position closed",
                 color = if (event.achievedProfits > BigDecimal.ZERO) Color.GOOD else Color.DANGER,
                 fields = listOf(
                     Field("posId", event.posId),

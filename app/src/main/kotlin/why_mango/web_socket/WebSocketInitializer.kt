@@ -9,7 +9,7 @@ import why_mango.strategy.machines.StefanoTradingMachine
 
 @Configuration
 class WebSocketInitializer(
-    private val publicClient: BitgetPublicDemoWebsocketClient,
+    private val publicClient: BitgetPublicWebsocketClient,
     private val privateClient: BitgetPrivateWebsocketClient,
     private val machine: StefanoTradingMachine,
     private val bitgetWebSocketClient2: BitgetWebSocketClient2

@@ -15,6 +15,10 @@ enum class HistoryPositionChannel(
     @SerializedName("positions-history")
     HISTORY_POSITION("positions-history"),
     ;
+
+    companion object {
+        fun from(value: String): HistoryPositionChannel = entries.first { it.value == value }
+    }
 }
 
 enum class TickerChannel(

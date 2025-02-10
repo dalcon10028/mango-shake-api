@@ -24,7 +24,7 @@ data class SubscribeChannel (
 class SubscribeChannelBuilder {
     private val channels = mutableListOf<SubscribeChannel>()
 
-    fun channel(instType: ProductType = ProductType.SUSDT_FUTURES, channel: WebsocketChannel, instId: String) {
+    fun channel(instType: ProductType, channel: WebsocketChannel, instId: String) {
         channels.add(SubscribeChannel(instType, channel, instId))
     }
 

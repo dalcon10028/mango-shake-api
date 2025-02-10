@@ -21,7 +21,7 @@ import why_mango.serialization.gson.NumberStringSerializer
 import java.math.BigDecimal
 
 @Component
-class BitgetPublicDemoWebsocketClient(
+class BitgetPublicWebsocketClient(
     private val bitgetProperties: BitgetProperties,
 ) {
     private val logger = KotlinLogging.logger {}
@@ -39,13 +39,13 @@ class BitgetPublicDemoWebsocketClient(
     private var pingJob: Job? = null
     private val _priceSharedFlow = MutableSharedFlow<TickerPushEvent>(replay = 1)
     private val _candlestickSharedFlow = MutableSharedFlow<CandleStickPushEvent>(replay = 500)
-    private val _CandlestickSharedFlow4h = MutableSharedFlow<CandleStickPushEvent>(replay = 200)
+    private val _candlestickSharedFlow4h = MutableSharedFlow<CandleStickPushEvent>(replay = 200)
     val priceEventFlow
         get() = _priceSharedFlow.asSharedFlow()
     val candlestickEventFlow
         get() = _candlestickSharedFlow.asSharedFlow()
     val candlestickEventFlow4h
-        get() = _CandlestickSharedFlow4h.asSharedFlow()
+        get() = _candlestickSharedFlow4h.asSharedFlow()
 
 
     fun connect() {
@@ -68,14 +68,32 @@ class BitgetPublicDemoWebsocketClient(
                 // 구독 메시지 전송
                 val subscribeMessage = subscribeChannels {
                     channel(
+                        instType = ProductType.USDT_FUTURES,
+                        channel = CandleStickChannel.CANDLE_1MIN,
+                        instId = "XRPUSDT"
+                    )
+                    channel(
+                        instType = ProductType.USDT_FUTURES,
+                        channel = CandleStickChannel.CANDLE_4HOUR,
+                        instId = "XRPUSDT"
+                    )
+                    channel(
+                        instType = ProductType.USDT_FUTURES,
+                        channel = TickerChannel.TICKER,
+                        instId = "XRPUSDT"
+                    )
+                    channel(
+                        instType = ProductType.SUSDT_FUTURES,
                         channel = CandleStickChannel.CANDLE_1MIN,
                         instId = "SXRPSUSDT"
                     )
                     channel(
+                        instType = ProductType.SUSDT_FUTURES,
                         channel = CandleStickChannel.CANDLE_4HOUR,
                         instId = "SXRPSUSDT"
                     )
                     channel(
+                        instType = ProductType.SUSDT_FUTURES,
                         channel = TickerChannel.TICKER,
                         instId = "SXRPSUSDT"
                     )
@@ -140,7 +158,7 @@ class BitgetPublicDemoWebsocketClient(
                 val candlestickType = object : TypeToken<List<List<String>>>() {}.type
                 gson.fromJson<List<List<String>>>(json, candlestickType)
                     .map { CandleStickPushEvent.from(it) }
-                    .forEach { _CandlestickSharedFlow4h.tryEmit(it) }
+                    .forEach { _candlestickSharedFlow4h.tryEmit(it) }
             }
 
             TickerChannel.TICKER.value -> {

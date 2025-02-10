@@ -98,7 +98,7 @@ abstract class AbstractBitgetWebsocketClient(
 
                     null -> {
                         require(response.action != null) { "Action is required when event is null" }
-                        handleMessage(response.arg.channel, response.action, response.data)
+                        handleMessage(response)
                     }
                 }
             }
@@ -153,5 +153,5 @@ abstract class AbstractBitgetWebsocketClient(
 
     protected abstract fun subscriptionMessage(): BitgetSubscribeRequest
 
-    protected abstract fun handleMessage(channel: String, action: WebsocketAction, json: JsonElement?)
+    protected abstract fun handleMessage(response: BitgetWebsocketResponse<JsonElement>)
 }
