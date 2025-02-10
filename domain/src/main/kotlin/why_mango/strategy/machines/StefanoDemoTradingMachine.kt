@@ -9,6 +9,7 @@ import kotlinx.coroutines.*
 import org.springframework.context.ApplicationEventPublisher
 import why_mango.bitget.BitgetFutureService
 import why_mango.bitget.dto.websocket.push_event.HistoryPositionPushEvent
+import why_mango.bitget.rest.BitgetDemoFutureService
 import why_mango.bitget.websocket.BitgetPrivateWebsocketClient
 import why_mango.component.slack.Color
 import why_mango.component.slack.Field
@@ -28,7 +29,7 @@ import java.math.RoundingMode
 class StefanoDemoTradingMachine(
     private val publicRealtimeClient: BitgetPublicWebsocketClient,
     private val privateRealtimeClient: BitgetPrivateWebsocketClient,
-    private val bitgetFutureService: BitgetFutureService,
+    private val bitgetFutureService: BitgetDemoFutureService,
     private val publisher: ApplicationEventPublisher,
 ) {
     companion object {
