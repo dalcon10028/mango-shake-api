@@ -7,7 +7,6 @@ import why_mango.strategy.model.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.*
 import org.springframework.context.ApplicationEventPublisher
-import why_mango.bitget.BitgetFutureService
 import why_mango.bitget.dto.websocket.push_event.HistoryPositionPushEvent
 import why_mango.bitget.rest.BitgetRealFutureService
 import why_mango.bitget.websocket.BitgetPrivateWebsocketClient
@@ -46,7 +45,7 @@ class StefanoTradingMachine(
         .map { it.lastPr }
         .distinctUntilChanged()
 
-    private suspend fun candleSticksFlow4h() = publicRealtimeClient.candlestickEventFlow4h
+    private suspend fun candleSticksFlow1h() = publicRealtimeClient.candlestickEventFlow1h
         .distinctUntilChangedBy { it.timestamp }
         .map { it.close }
         .windowed(200)
@@ -71,12 +70,12 @@ class StefanoTradingMachine(
             combine(
                 emaCrossIndicator(12, 26, 5),
                 jmaSlopeFlow(),
-                candleSticksFlow4h(),
+                candleSticksFlow1h(),
                 priceFlow,
-            ) { emaCross, jmaSlope, candle4h, price ->
+            ) { emaCross, jmaSlope, candle1h, price ->
                 require(jmaSlope != null) { "jmaSlope is null" }
-//                logger.info { "📈 emaCross: $emaCross, jmaSlope: $jmaSlope, candle4h: $candle4h, price: $price" }
-                StefanoTradeEvent(emaCross, jmaSlope, candle4h, price)
+//                logger.info { "📈 emaCross: $emaCross, jmaSlope: $jmaSlope, candle4h: $candle1h, price: $price" }
+                StefanoTradeEvent(emaCross, jmaSlope, candle1h, price)
             }
                 .sample(1000)
                 .onEach {
@@ -103,7 +102,7 @@ class StefanoTradingMachine(
         }
 
         scope.launch {
-            privateRealtimeClient.positionHistoryChannel[BitgetPrivateWebsocketClient.InstId.XRPUSDT]!!
+            privateRealtimeClient.xrpusdtPositionHistoryChannel
                 .onEach { logger.info { "position: $it" } }
                 .onEach {
                     _state = when (state) {
@@ -139,7 +138,7 @@ class StefanoTradingMachine(
                             Field("price", stefano.price),
                             Field("emaCross", stefano.emaCross),
                             Field("jmaSlope", stefano.jmaSlope),
-                            Field("candle4h", stefano.candle4h)
+                            Field("candle1h", stefano.candle1h)
                         )
                     )
                 )
@@ -163,7 +162,7 @@ class StefanoTradingMachine(
                             Field("price", stefano.price),
                             Field("emaCross", stefano.emaCross),
                             Field("jmaSlope", stefano.jmaSlope),
-                            Field("macdCross", stefano.candle4h)
+                            Field("candle1h", stefano.candle1h)
                         )
                     )
                 )
@@ -198,10 +197,10 @@ class StefanoTradingMachine(
     data class StefanoTradeEvent(
         val emaCross: CrossResult,
         val jmaSlope: BigDecimal,
-        val candle4h: BigDecimal,
+        val candle1h: BigDecimal,
         val price: BigDecimal,
     ) {
-        val isLong: Boolean get() = emaCross == GOLDEN_CROSS && jmaSlope > BigDecimal.ZERO && price > candle4h
-        val isShort: Boolean get() = emaCross == DEATH_CROSS && jmaSlope < BigDecimal.ZERO && price < candle4h
+        val isLong: Boolean get() = emaCross == GOLDEN_CROSS && jmaSlope > BigDecimal.ZERO && price > candle1h
+        val isShort: Boolean get() = emaCross == DEATH_CROSS && jmaSlope < BigDecimal.ZERO && price < candle1h
     }
 }

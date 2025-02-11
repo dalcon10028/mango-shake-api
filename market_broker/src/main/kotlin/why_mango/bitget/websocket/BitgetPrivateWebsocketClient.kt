@@ -37,19 +37,17 @@ class BitgetPrivateWebsocketClient(
         )
     }
 
-    private val _positionHistoryChannel: Map<InstId, MutableSharedFlow<HistoryPositionPushEvent>> = mapOf(
-        InstId.SXRPSUSDT to MutableSharedFlow(replay = 1),
-        InstId.XRPUSDT to MutableSharedFlow(replay = 1)
-    )
-
-    val positionHistoryChannel: Map<InstId, SharedFlow<HistoryPositionPushEvent>> = _positionHistoryChannel
+    private val _sxrpsusdtPositionHistoryChannel = MutableSharedFlow<HistoryPositionPushEvent>(replay = 1)
+    val sxrpsusdtPositionHistoryChannel: SharedFlow<HistoryPositionPushEvent> = _sxrpsusdtPositionHistoryChannel.asSharedFlow()
+    private val _xrpusdtPositionHistoryChannel = MutableSharedFlow<HistoryPositionPushEvent>(replay = 1)
+    val xrpusdtPositionHistoryChannel: SharedFlow<HistoryPositionPushEvent> = _xrpusdtPositionHistoryChannel.asSharedFlow()
 
     override fun subscriptionMessage(): BitgetSubscribeRequest = subscribeChannels {
-        channel(
-            instType = ProductType.SUSDT_FUTURES,
-            channel = HISTORY_POSITION,
-            instId = "default"
-        )
+//        channel(
+//            instType = ProductType.SUSDT_FUTURES,
+//            channel = HISTORY_POSITION,
+//            instId = "default"
+//        )
         channel(
             instType = ProductType.USDT_FUTURES,
             channel = HISTORY_POSITION,
@@ -87,8 +85,8 @@ class BitgetPrivateWebsocketClient(
             UPDATE -> {
                 parseJson<List<HistoryPositionPushEvent>>(response.data).forEach {
                     when (it.instId) {
-                        "SXRPSUSDT" -> _positionHistoryChannel[InstId.SXRPSUSDT]!!.tryEmit(it)
-                        "XRPUSDT" -> _positionHistoryChannel[InstId.XRPUSDT]!!.tryEmit(it)
+                        "SXRPSUSDT" -> _sxrpsusdtPositionHistoryChannel.tryEmit(it)
+                        "XRPUSDT" -> _xrpusdtPositionHistoryChannel.tryEmit(it)
                         else -> logger.warn { "Unknown instId: ${it.instId}" }
                     }
 

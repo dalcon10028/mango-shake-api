@@ -12,11 +12,10 @@ class WebSocketInitializer(
     private val publicClient: BitgetPublicWebsocketClient,
     private val privateClient: BitgetPrivateWebsocketClient,
     private val machine: StefanoTradingMachine,
-    private val bitgetWebSocketClient2: BitgetWebSocketClient2
+//    private val bitgetWebSocketClient2: BitgetWebSocketClient2
 ) {
     @Bean
     fun applicationRunner() = ApplicationRunner {
-
         runBlocking {
             privateClient.connect()
             publicClient.connect()

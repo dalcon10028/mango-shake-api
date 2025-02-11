@@ -39,13 +39,13 @@ class BitgetPublicWebsocketClient(
     private var pingJob: Job? = null
     private val _priceSharedFlow = MutableSharedFlow<TickerPushEvent>(replay = 1)
     private val _candlestickSharedFlow = MutableSharedFlow<CandleStickPushEvent>(replay = 500)
-    private val _candlestickSharedFlow4h = MutableSharedFlow<CandleStickPushEvent>(replay = 200)
+    private val _candlestickSharedFlow1h = MutableSharedFlow<CandleStickPushEvent>(replay = 200)
     val priceEventFlow
         get() = _priceSharedFlow.asSharedFlow()
     val candlestickEventFlow
         get() = _candlestickSharedFlow.asSharedFlow()
-    val candlestickEventFlow4h
-        get() = _candlestickSharedFlow4h.asSharedFlow()
+    val candlestickEventFlow1h
+        get() = _candlestickSharedFlow1h.asSharedFlow()
 
 
     fun connect() {
@@ -74,7 +74,7 @@ class BitgetPublicWebsocketClient(
                     )
                     channel(
                         instType = ProductType.USDT_FUTURES,
-                        channel = CandleStickChannel.CANDLE_4HOUR,
+                        channel = CandleStickChannel.CANDLE_1HOUR,
                         instId = "XRPUSDT"
                     )
                     channel(
@@ -146,7 +146,6 @@ class BitgetPublicWebsocketClient(
             CandleStickChannel.CANDLE_5MIN.value,
             CandleStickChannel.CANDLE_15MIN.value,
             CandleStickChannel.CANDLE_30MIN.value,
-            CandleStickChannel.CANDLE_1HOUR.value,
             -> {
                 val candlestickType = object : TypeToken<List<List<String>>>() {}.type
                 gson.fromJson<List<List<String>>>(json, candlestickType)
@@ -154,11 +153,11 @@ class BitgetPublicWebsocketClient(
                     .forEach { _candlestickSharedFlow.tryEmit(it) }
             }
 
-            CandleStickChannel.CANDLE_4HOUR.value, -> {
+            CandleStickChannel.CANDLE_1HOUR.value, -> {
                 val candlestickType = object : TypeToken<List<List<String>>>() {}.type
                 gson.fromJson<List<List<String>>>(json, candlestickType)
                     .map { CandleStickPushEvent.from(it) }
-                    .forEach { _candlestickSharedFlow4h.tryEmit(it) }
+                    .forEach { _candlestickSharedFlow1h.tryEmit(it) }
             }
 
             TickerChannel.TICKER.value -> {

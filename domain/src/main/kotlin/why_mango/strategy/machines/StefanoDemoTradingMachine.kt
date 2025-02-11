@@ -7,7 +7,6 @@ import why_mango.strategy.model.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.*
 import org.springframework.context.ApplicationEventPublisher
-import why_mango.bitget.BitgetFutureService
 import why_mango.bitget.dto.websocket.push_event.HistoryPositionPushEvent
 import why_mango.bitget.rest.BitgetDemoFutureService
 import why_mango.bitget.websocket.BitgetPrivateWebsocketClient
@@ -25,7 +24,7 @@ import java.math.RoundingMode
 /**
  * 스테파노 매매법
  */
-@Service
+//@Service
 class StefanoDemoTradingMachine(
     private val publicRealtimeClient: BitgetPublicWebsocketClient,
     private val privateRealtimeClient: BitgetPrivateWebsocketClient,
@@ -46,7 +45,7 @@ class StefanoDemoTradingMachine(
         .map { it.lastPr }
         .distinctUntilChanged()
 
-    private suspend fun candleSticksFlow4h() = publicRealtimeClient.candlestickEventFlow4h
+    private suspend fun candleSticksFlow4h() = publicRealtimeClient.candlestickEventFlow1h
         .distinctUntilChangedBy { it.timestamp }
         .map { it.close }
         .windowed(200)
@@ -124,7 +123,7 @@ class StefanoDemoTradingMachine(
         }
 
         scope.launch {
-            privateRealtimeClient.positionHistoryChannel[BitgetPrivateWebsocketClient.InstId.SXRPSUSDT]!!
+            privateRealtimeClient.sxrpsusdtPositionHistoryChannel
                 .onEach { logger.info { "position: $it" } }
                 .onEach {
                     _state = when (state) {
