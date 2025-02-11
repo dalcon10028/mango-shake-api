@@ -82,21 +82,21 @@ class BitgetPublicWebsocketClient(
                         channel = TickerChannel.TICKER,
                         instId = "XRPUSDT"
                     )
-                    channel(
-                        instType = ProductType.SUSDT_FUTURES,
-                        channel = CandleStickChannel.CANDLE_1MIN,
-                        instId = "SXRPSUSDT"
-                    )
-                    channel(
-                        instType = ProductType.SUSDT_FUTURES,
-                        channel = CandleStickChannel.CANDLE_4HOUR,
-                        instId = "SXRPSUSDT"
-                    )
-                    channel(
-                        instType = ProductType.SUSDT_FUTURES,
-                        channel = TickerChannel.TICKER,
-                        instId = "SXRPSUSDT"
-                    )
+//                    channel(
+//                        instType = ProductType.SUSDT_FUTURES,
+//                        channel = CandleStickChannel.CANDLE_1MIN,
+//                        instId = "SXRPSUSDT"
+//                    )
+//                    channel(
+//                        instType = ProductType.SUSDT_FUTURES,
+//                        channel = CandleStickChannel.CANDLE_4HOUR,
+//                        instId = "SXRPSUSDT"
+//                    )
+//                    channel(
+//                        instType = ProductType.SUSDT_FUTURES,
+//                        channel = TickerChannel.TICKER,
+//                        instId = "SXRPSUSDT"
+//                    )
                 }
                 webSocket.send(gson.toJson(subscribeMessage))
             }
