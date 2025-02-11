@@ -17,6 +17,7 @@ import why_mango.bitget.config.BitgetProperties
 import why_mango.bitget.dto.BitgetWebsocketResponse
 import why_mango.bitget.dto.websocket.push_event.CandleStickPushEvent
 import why_mango.bitget.dto.websocket.push_event.TickerPushEvent
+import why_mango.bitget.model.CandleQueue
 import why_mango.serialization.gson.NumberStringSerializer
 import java.math.BigDecimal
 
@@ -37,15 +38,16 @@ class BitgetPublicWebsocketClient(
         .create()
     private var isRunning = false
     private var pingJob: Job? = null
+    private val candles1h = CandleQueue(200)
+    private val candles1m = CandleQueue(200)
     private val _priceSharedFlow = MutableSharedFlow<TickerPushEvent>(replay = 1)
-    private val _candlestickSharedFlow = MutableSharedFlow<CandleStickPushEvent>(replay = 500)
-    private val _candlestickSharedFlow1h = MutableSharedFlow<CandleStickPushEvent>(replay = 200)
+
     val priceEventFlow
         get() = _priceSharedFlow.asSharedFlow()
     val candlestickEventFlow
-        get() = _candlestickSharedFlow.asSharedFlow()
+        get() = candles1m.candleFlow
     val candlestickEventFlow1h
-        get() = _candlestickSharedFlow1h.asSharedFlow()
+        get() = candles1h.candleFlow
 
 
     fun connect() {
@@ -150,14 +152,14 @@ class BitgetPublicWebsocketClient(
                 val candlestickType = object : TypeToken<List<List<String>>>() {}.type
                 gson.fromJson<List<List<String>>>(json, candlestickType)
                     .map { CandleStickPushEvent.from(it) }
-                    .forEach { _candlestickSharedFlow.tryEmit(it) }
+                    .forEach { candles1m.add(it) }
             }
 
             CandleStickChannel.CANDLE_1HOUR.value, -> {
                 val candlestickType = object : TypeToken<List<List<String>>>() {}.type
                 gson.fromJson<List<List<String>>>(json, candlestickType)
                     .map { CandleStickPushEvent.from(it) }
-                    .forEach { _candlestickSharedFlow1h.tryEmit(it) }
+                    .forEach { candles1h.add(it) }
             }
 
             TickerChannel.TICKER.value -> {

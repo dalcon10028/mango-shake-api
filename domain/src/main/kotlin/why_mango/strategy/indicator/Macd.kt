@@ -33,8 +33,8 @@ fun List<BigDecimal>.macd(
 ): List<MacdResult> {
     if (this.size < slowLength) return emptyList()
 
-    val fastEMA = this.ema(fastLength, scale, finalScale, roundingMode)
-    val slowEMA = this.ema(slowLength, scale, finalScale, roundingMode)
+    val fastEMA = this.ema(fastLength, scale)
+    val slowEMA = this.ema(slowLength, scale)
 
     // fastEMA는 길이가 (N - fastLength + 1), slowEMA는 (N - slowLength + 1)
     // 두 EMA를 정렬하려면 fastEMA에서 (slowLength - fastLength)개를 제거합니다.
@@ -48,7 +48,7 @@ fun List<BigDecimal>.macd(
 
     // Signal 라인: MACD 시리즈에 대해 EMA(signalLength)를 계산
     if (macdSeries.size < signalLength) return emptyList()
-    val signalLineFull = macdSeries.ema(signalLength, scale, finalScale, roundingMode)
+    val signalLineFull = macdSeries.ema(signalLength, scale)
     // EMA로 계산한 Signal 라인의 길이는 (macdSeries.size - signalLength + 1)
     // MACD 시리즈와 Signal 라인의 길이를 맞추기 위해, MACD 시리즈의 앞부분을 제거합니다.
     val alignedMacd = macdSeries.drop(macdSeries.size - signalLineFull.size)

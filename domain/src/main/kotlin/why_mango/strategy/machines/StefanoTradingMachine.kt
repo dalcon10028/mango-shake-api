@@ -46,23 +46,21 @@ class StefanoTradingMachine(
         .distinctUntilChanged()
 
     private suspend fun candleSticksFlow1h() = publicRealtimeClient.candlestickEventFlow1h
-        .distinctUntilChangedBy { it.timestamp }
-        .map { it.close }
-        .windowed(200)
+        .map { candles -> candles.map { it.close } }
         .map { candles -> candles.sma(200) }
+        .filterNotNull()
+
 
     private suspend fun emaCrossIndicator(short: Int, long: Int, window: Int) = publicRealtimeClient.candlestickEventFlow
-        .distinctUntilChangedBy { it.timestamp }
-        .map { it.close }
-        .windowed(200)
+        .map { candles -> candles.map { it.close } }
         .map { candles -> candles.emaCross(short, long, window) }
-        .map { it.last() }
+        .map { it.lastOrNull() }
+        .filterNotNull()
 
     private suspend fun jmaSlopeFlow() = publicRealtimeClient.candlestickEventFlow
-        .distinctUntilChangedBy { it.timestamp }
-        .map { it.close }
-        .windowed(200)
+        .map { candles -> candles.map { it.close } }
         .map { window -> window.jmaSlope() }
+        .filterNotNull()
 
     @OptIn(FlowPreview::class)
     fun subscribeEventFlow() {
@@ -73,8 +71,7 @@ class StefanoTradingMachine(
                 candleSticksFlow1h(),
                 priceFlow,
             ) { emaCross, jmaSlope, candle1h, price ->
-                require(jmaSlope != null) { "jmaSlope is null" }
-//                logger.info { "📈 emaCross: $emaCross, jmaSlope: $jmaSlope, candle4h: $candle1h, price: $price" }
+//                logger.info { "📈 emaCross: $emaCross, jmaSlope: $jmaSlope, candle1h: $candle1h, price: $price" }
                 StefanoTradeEvent(emaCross, jmaSlope, candle1h, price)
             }
                 .sample(1000)

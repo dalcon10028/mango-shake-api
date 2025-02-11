@@ -20,36 +20,37 @@ import kotlin.math.pow
  */
 fun List<BigDecimal>.ema(
     period: Int,
-    scale: Int = 10,
-    finalScale: Int = 8,
-    roundingMode: RoundingMode = RoundingMode.HALF_UP
+    scale: Int = 8,
 ): List<BigDecimal> {
     require(period > 0) { "Period must be positive" }
-    if (this.size < period) return emptyList()
+    if (this.isEmpty()) return emptyList()
 
-    val result = mutableListOf<BigDecimal>()
-    // 초기 EMA는 첫 period 값들의 단순 평균(SMA)
-    var ema = this.take(period)
-        .reduce(BigDecimal::add)
-        .divide(BigDecimal(period), scale, roundingMode)
-    result.add(ema.setScale(finalScale, roundingMode))
+    // α (alpha) = 2 / (period + 1)
+    val alpha = BigDecimal(2).divide(BigDecimal(period + 1), scale, RoundingMode.HALF_UP)
 
-    // 이후 각 가격에 대해 EMA 업데이트: (prevEMA * (period-1) + price) / period
-    for (price in this.drop(period)) {
-        ema = (ema.multiply(BigDecimal(period - 1))
-            .add(price))
-            .divide(BigDecimal(period), scale, roundingMode)
-        result.add(ema.setScale(finalScale, roundingMode))
+    // 결과 리스트 초기화 (첫 번째 EMA 값은 원본 데이터의 첫 번째 값)
+    val emaList = mutableListOf<BigDecimal>()
+    emaList.add(this.first())
+
+    // 이전 EMA 값 초기화
+    var prevEma = this.first()
+
+    // EMA 계산 루프
+    for (i in 1 until this.size) {
+        val currentValue = this[i]
+        val currentEma = alpha.multiply(currentValue) + (ONE - alpha).multiply(prevEma)
+        val roundedEma = currentEma.setScale(scale, RoundingMode.HALF_UP) // 반올림하여 정밀도 유지
+        emaList.add(roundedEma)
+        prevEma = roundedEma // 다음 계산을 위해 이전 EMA 값 업데이트
     }
-    return result
+
+    return emaList
 }
 
 fun List<BigDecimal>.emaSingle(
     period: Int,
-    scale: Int = 10,
-    finalScale: Int = 8,
-    roundingMode: RoundingMode = RoundingMode.HALF_UP
-): BigDecimal? = this.ema(period, scale, finalScale, roundingMode).lastOrNull()
+    scale: Int = 8,
+): BigDecimal? = this.ema(period, scale).lastOrNull()
 
 /**
  * Calculate Simple Moving Average (SMA) of the given list of prices.
@@ -58,9 +59,9 @@ fun List<BigDecimal>.sma(
     period: Int,
     scale: Int = 10,
     roundingMode: RoundingMode = RoundingMode.HALF_UP
-): BigDecimal {
+): BigDecimal? {
     require(period > 0) { "Period must be positive" }
-    require(this.size >= period) { "Not enough data to calculate SMA" }
+    if (this.size < period) return null
 
     val sma = this.takeLast(period)
         .reduce(BigDecimal::add)
