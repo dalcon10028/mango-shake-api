@@ -32,7 +32,8 @@ class StefanoTradingMachine(
     private val publisher: ApplicationEventPublisher,
 ) {
     companion object {
-        private const val BALANCE_USD = 200
+        private const val BALANCE_USD = 100
+        private const val LEVERAGE = 10
         private const val SYMBOL = "XRPUSDT"
     }
 
@@ -121,10 +122,10 @@ class StefanoTradingMachine(
             stefano.isLong -> {
                 bitgetFutureService.openLong(
                     SYMBOL,
-                    size = (BALANCE_USD.toBigDecimal() / stefano.price).setScale(0),
+                    size = (BALANCE_USD.toBigDecimal() * LEVERAGE.toBigDecimal() / stefano.price).setScale(0),
                     price = stefano.price,
-                    presetStopSurplusPrice = stefano.price.takeProfitLong(0.15, 10).setScale(3, RoundingMode.FLOOR),
-                    presetStopLossPrice = stefano.price.stopLossLong(0.1, 10).setScale(3, RoundingMode.FLOOR)
+                    presetStopSurplusPrice = stefano.price.takeProfitLong(0.15, LEVERAGE).setScale(3, RoundingMode.FLOOR),
+                    presetStopLossPrice = stefano.price.stopLossLong(0.1, LEVERAGE).setScale(3, RoundingMode.FLOOR)
                 )
                 publisher.publishEvent(
                     SlackEvent(
@@ -145,10 +146,10 @@ class StefanoTradingMachine(
             stefano.isShort -> {
                 bitgetFutureService.openShort(
                     SYMBOL,
-                    size = (BALANCE_USD.toBigDecimal() / stefano.price).setScale(0),
+                    size = (BALANCE_USD.toBigDecimal() * LEVERAGE.toBigDecimal() / stefano.price).setScale(0),
                     price = stefano.price,
-                    presetStopSurplusPrice = stefano.price.takeProfitShort(0.15, 10).setScale(3, RoundingMode.FLOOR),
-                    presetStopLossPrice = stefano.price.stopLossShort(0.1, 10).setScale(3, RoundingMode.FLOOR)
+                    presetStopSurplusPrice = stefano.price.takeProfitShort(0.15, LEVERAGE).setScale(3, RoundingMode.FLOOR),
+                    presetStopLossPrice = stefano.price.stopLossShort(0.1, LEVERAGE).setScale(3, RoundingMode.FLOOR)
                 )
                 publisher.publishEvent(
                     SlackEvent(
