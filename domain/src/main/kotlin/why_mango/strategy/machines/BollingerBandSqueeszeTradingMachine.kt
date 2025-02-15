@@ -58,9 +58,9 @@ class BollingerBandSqueeszeTradingMachine(
                 priceFlow,
                 bbFlow,
                 moneyFlowIndex,
-                publicRealtimeClient.candlestickEventFlow1h.map { it.last() },
+                publicRealtimeClient.candlestickEventFlow1h.map { it.last() }.filterNotNull(),
             ) { price, bollingerBand, moneyFlowIndex, candle ->
-                logger.info { "📈 price: $price, bollingerBand: $bollingerBand, width: ${bollingerBand.width}, moneyFlowIndex: $moneyFlowIndex" }
+//                logger.info { "📈 price: $price, bollingerBand: $bollingerBand, width: ${bollingerBand.width}, moneyFlowIndex: $moneyFlowIndex" }
                 BollingerBandSqueezeEvent(
                     band = bollingerBand,
                     moneyFlowIndex = moneyFlowIndex,
