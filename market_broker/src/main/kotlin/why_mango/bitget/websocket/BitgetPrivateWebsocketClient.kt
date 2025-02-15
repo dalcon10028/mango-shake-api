@@ -43,16 +43,16 @@ class BitgetPrivateWebsocketClient(
     val xrpusdtPositionHistoryChannel: SharedFlow<HistoryPositionPushEvent> = _xrpusdtPositionHistoryChannel.asSharedFlow()
 
     override fun subscriptionMessage(): BitgetSubscribeRequest = subscribeChannels {
-//        channel(
-//            instType = ProductType.SUSDT_FUTURES,
-//            channel = HISTORY_POSITION,
-//            instId = "default"
-//        )
         channel(
-            instType = ProductType.USDT_FUTURES,
+            instType = ProductType.SUSDT_FUTURES,
             channel = HISTORY_POSITION,
             instId = "default"
         )
+//        channel(
+//            instType = ProductType.USDT_FUTURES,
+//            channel = HISTORY_POSITION,
+//            instId = "default"
+//        )
     }
 
     override fun login(): BitgetLoginRequest? {

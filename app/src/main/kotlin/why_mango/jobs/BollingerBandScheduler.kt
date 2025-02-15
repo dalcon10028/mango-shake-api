@@ -3,13 +3,11 @@ package why_mango.jobs
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import why_mango.strategy.bollinger_band.BollingerBandStrategyService
 import why_mango.strategy.machines.StefanoTradingMachine
 import java.time.LocalDateTime
 
 @Component
 class BollingerBandScheduler(
-    private val strategyService: BollingerBandStrategyService,
     private val stefanoTradingMachine: StefanoTradingMachine,
 ) {
     private val logger = KotlinLogging.logger {}
@@ -20,7 +18,7 @@ class BollingerBandScheduler(
 //    @Scheduled(cron = "0 */1 * * * *", zone = "Asia/Seoul")
     suspend fun nextTick() {
         logger.info { "BollingerBandScheduler nextTick" }
-        strategyService.next(LocalDateTime.now())
+//        strategyService.next(LocalDateTime.now())
     }
 
     /**

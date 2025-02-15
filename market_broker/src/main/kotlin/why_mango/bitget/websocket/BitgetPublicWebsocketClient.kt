@@ -69,36 +69,36 @@ class BitgetPublicWebsocketClient(
 
                 // 구독 메시지 전송
                 val subscribeMessage = subscribeChannels {
-                    channel(
-                        instType = ProductType.USDT_FUTURES,
-                        channel = CandleStickChannel.CANDLE_1MIN,
-                        instId = "XRPUSDT"
-                    )
-                    channel(
-                        instType = ProductType.USDT_FUTURES,
-                        channel = CandleStickChannel.CANDLE_1HOUR,
-                        instId = "XRPUSDT"
-                    )
-                    channel(
-                        instType = ProductType.USDT_FUTURES,
-                        channel = TickerChannel.TICKER,
-                        instId = "XRPUSDT"
-                    )
+//                    channel(
+//                        instType = ProductType.USDT_FUTURES,
+//                        channel = CandleStickChannel.CANDLE_1MIN,
+//                        instId = "XRPUSDT"
+//                    )
+//                    channel(
+//                        instType = ProductType.USDT_FUTURES,
+//                        channel = CandleStickChannel.CANDLE_1HOUR,
+//                        instId = "XRPUSDT"
+//                    )
+//                    channel(
+//                        instType = ProductType.USDT_FUTURES,
+//                        channel = TickerChannel.TICKER,
+//                        instId = "XRPUSDT"
+//                    )
 //                    channel(
 //                        instType = ProductType.SUSDT_FUTURES,
 //                        channel = CandleStickChannel.CANDLE_1MIN,
 //                        instId = "SXRPSUSDT"
 //                    )
-//                    channel(
-//                        instType = ProductType.SUSDT_FUTURES,
-//                        channel = CandleStickChannel.CANDLE_4HOUR,
-//                        instId = "SXRPSUSDT"
-//                    )
-//                    channel(
-//                        instType = ProductType.SUSDT_FUTURES,
-//                        channel = TickerChannel.TICKER,
-//                        instId = "SXRPSUSDT"
-//                    )
+                    channel(
+                        instType = ProductType.SUSDT_FUTURES,
+                        channel = CandleStickChannel.CANDLE_1HOUR,
+                        instId = "SXRPSUSDT"
+                    )
+                    channel(
+                        instType = ProductType.SUSDT_FUTURES,
+                        channel = TickerChannel.TICKER,
+                        instId = "SXRPSUSDT"
+                    )
                 }
                 webSocket.send(gson.toJson(subscribeMessage))
             }
