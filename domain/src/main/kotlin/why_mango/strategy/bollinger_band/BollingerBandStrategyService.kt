@@ -7,7 +7,7 @@ import why_mango.strategy.enums.StrategyState.*
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import why_mango.bitget.enums.Granularity
-import why_mango.bitget.rest.BitgetDemoFutureService
+import why_mango.bitget.BitgetFutureService
 import why_mango.strategy.enums.StrategyState
 import why_mango.strategy.indicator.bollingerBand
 import java.math.BigDecimal
@@ -15,7 +15,7 @@ import java.time.LocalDateTime
 
 @Service
 class BollingerBandStrategyService(
-    private val bitgetFutureService: BitgetDemoFutureService,
+    private val bitgetFutureService: BitgetFutureService,
     private val eventPublisher: ApplicationEventPublisher,
 ) {
     private var state: StrategyState = WAITING

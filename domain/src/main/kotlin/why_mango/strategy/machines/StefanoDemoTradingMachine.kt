@@ -1,26 +1,5 @@
 package why_mango.strategy.machines
 
-import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.stereotype.Service
-import why_mango.bitget.websocket.BitgetPublicWebsocketClient
-import why_mango.strategy.model.*
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.*
-import org.springframework.context.ApplicationEventPublisher
-import why_mango.bitget.dto.websocket.push_event.HistoryPositionPushEvent
-import why_mango.bitget.rest.BitgetDemoFutureService
-import why_mango.bitget.websocket.BitgetPrivateWebsocketClient
-import why_mango.component.slack.Color
-import why_mango.component.slack.Field
-import why_mango.component.slack.SlackEvent
-import why_mango.component.slack.Topic
-import why_mango.strategy.enums.CrossResult
-import why_mango.strategy.enums.CrossResult.*
-import why_mango.strategy.indicator.*
-import why_mango.utils.*
-import java.math.BigDecimal
-import java.math.RoundingMode
-
 /**
  * 스테파노 매매법
  */

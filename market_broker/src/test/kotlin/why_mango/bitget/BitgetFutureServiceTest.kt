@@ -6,7 +6,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import org.springframework.boot.test.context.SpringBootTest
 import why_mango.bitget.enums.Granularity
-import why_mango.bitget.rest.BitgetDemoFutureService
 import why_mango.component.slack.SlackEventListener
 import java.util.UUID
 
@@ -16,7 +15,7 @@ import java.util.UUID
     MockkBean(SlackEventListener.SlackProperties::class),
 )
 class BitgetFutureServiceTest(
-    private val bitgetFutureService: BitgetDemoFutureService,
+    private val bitgetFutureService: BitgetFutureService,
 ) : FunSpec({
     test("getCandlestick") {
         val candlestick = bitgetFutureService.getCandlestick(
