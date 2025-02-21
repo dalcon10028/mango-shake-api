@@ -41,13 +41,13 @@ class BollingerBandSqueeszeTradingMachine(
         .map { it.lastPr }
         .distinctUntilChanged()
 
-    private val bbFlow = publicRealtimeClient.candlestickEventFlow1h
+    private val bbFlow = publicRealtimeClient.candlestickEventFlow15m
         .map { candles -> candles.map { it.close } }
         .map { candles -> candles.bollingerBands(20) }
         .map { it.lastOrNull() }
         .filterNotNull()
 
-    private val moneyFlowIndex = publicRealtimeClient.candlestickEventFlow1h
+    private val moneyFlowIndex = publicRealtimeClient.candlestickEventFlow15m
         .map { candles -> candles.moneyFlowIndex() }
         .map { it.lastOrNull() }
         .filterNotNull()
@@ -58,7 +58,7 @@ class BollingerBandSqueeszeTradingMachine(
                 priceFlow,
                 bbFlow,
                 moneyFlowIndex,
-                publicRealtimeClient.candlestickEventFlow1h.map { it.last() }.filterNotNull(),
+                publicRealtimeClient.candlestickEventFlow15m.map { it.last() }.filterNotNull(),
             ) { price, bollingerBand, moneyFlowIndex, candle ->
 //                logger.info { "📈 price: $price, bollingerBand: $bollingerBand, width: ${bollingerBand.width}, moneyFlowIndex: $moneyFlowIndex" }
                 BollingerBandSqueezeEvent(

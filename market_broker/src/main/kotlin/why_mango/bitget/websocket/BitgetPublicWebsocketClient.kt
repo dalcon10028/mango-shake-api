@@ -38,6 +38,7 @@ class BitgetPublicWebsocketClient(
         .create()
     private var isRunning = false
     private var pingJob: Job? = null
+    private val candles15m = CandleQueue(200)
     private val candles1h = CandleQueue(200)
     private val candles1m = CandleQueue(200)
     private val _priceSharedFlow = MutableSharedFlow<TickerPushEvent>(replay = 1)
@@ -48,6 +49,8 @@ class BitgetPublicWebsocketClient(
         get() = candles1m.candleFlow
     val candlestickEventFlow1h
         get() = candles1h.candleFlow
+    val candlestickEventFlow15m
+        get() = candles15m.candleFlow
 
 
     fun connect() {
@@ -91,7 +94,7 @@ class BitgetPublicWebsocketClient(
 //                    )
                     channel(
                         instType = ProductType.SUSDT_FUTURES,
-                        channel = CandleStickChannel.CANDLE_1HOUR,
+                        channel = CandleStickChannel.CANDLE_15MIN,
                         instId = "SXRPSUSDT"
                     )
                     channel(
@@ -146,13 +149,19 @@ class BitgetPublicWebsocketClient(
         when (channel) {
             CandleStickChannel.CANDLE_1MIN.value,
             CandleStickChannel.CANDLE_5MIN.value,
-            CandleStickChannel.CANDLE_15MIN.value,
             CandleStickChannel.CANDLE_30MIN.value,
             -> {
                 val candlestickType = object : TypeToken<List<List<String>>>() {}.type
                 gson.fromJson<List<List<String>>>(json, candlestickType)
                     .map { CandleStickPushEvent.from(it) }
                     .forEach { candles1m.add(it) }
+            }
+
+            CandleStickChannel.CANDLE_15MIN.value, -> {
+                val candlestickType = object : TypeToken<List<List<String>>>() {}.type
+                gson.fromJson<List<List<String>>>(json, candlestickType)
+                    .map { CandleStickPushEvent.from(it) }
+                    .forEach { candles15m.add(it) }
             }
 
             CandleStickChannel.CANDLE_1HOUR.value, -> {
