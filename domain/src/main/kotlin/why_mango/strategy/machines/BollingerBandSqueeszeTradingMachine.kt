@@ -192,7 +192,7 @@ class BollingerBandSqueeszeTradingMachine(
         val price: BigDecimal,
         val candle: CandleStickPushEvent,
     ) {
-        val isLong: Boolean get() = band.upper > price && moneyFlowIndex > "80".toBigDecimal()
-        val isShort: Boolean get() = band.lower < price && moneyFlowIndex < "20".toBigDecimal()
+        val isLong: Boolean get() = band.upper < price && moneyFlowIndex > "80".toBigDecimal()
+        val isShort: Boolean get() = band.lower > price && moneyFlowIndex < "20".toBigDecimal()
     }
 }
