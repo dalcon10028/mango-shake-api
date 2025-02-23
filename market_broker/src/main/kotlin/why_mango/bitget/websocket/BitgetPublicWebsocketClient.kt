@@ -42,6 +42,9 @@ class BitgetPublicWebsocketClient(
     private val tickerChannelMap: Map<String, MutableSharedFlow<TickerPushEvent>> = mapOf(
         "XRPUSDT" to MutableSharedFlow(replay = 1),
         "DOGEUSDT" to MutableSharedFlow(replay = 1),
+        "ETHUSDT" to MutableSharedFlow(replay = 1),
+        "TRUMPUSDT" to MutableSharedFlow(replay = 1),
+        "BGSCUSDT" to MutableSharedFlow(replay = 1),
     )
 
     private val candleChannelMap = mapOf(
@@ -52,6 +55,21 @@ class BitgetPublicWebsocketClient(
         ),
         "DOGEUSDT_15m" to CandleQueue(
             symbol = "DOGEUSDT",
+            granularity = Granularity.FIFTEEN_MINUTES,
+            maxCandleSize = 200,
+        ),
+        "ETHUSDT_15m" to CandleQueue(
+            symbol = "ETHUSDT",
+            granularity = Granularity.FIFTEEN_MINUTES,
+            maxCandleSize = 200,
+        ),
+        "TRUMPUSDT_15m" to CandleQueue(
+            symbol = "TRUMPUSDT",
+            granularity = Granularity.FIFTEEN_MINUTES,
+            maxCandleSize = 200,
+        ),
+        "BGSCUSDT_15m" to CandleQueue(
+            symbol = "BGSCUSDT",
             granularity = Granularity.FIFTEEN_MINUTES,
             maxCandleSize = 200,
         ),

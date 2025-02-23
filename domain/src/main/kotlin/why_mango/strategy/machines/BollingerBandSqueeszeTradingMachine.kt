@@ -33,7 +33,7 @@ class BollingerBandSqueeszeTradingMachine(
     private val logger = KotlinLogging.logger {}
 //    @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private val universe = setOf("XRPUSDT", "DOGEUSDT")
+    private val universe = setOf("XRPUSDT", "DOGEUSDT", "ETHUSDT", "TRUMPUSDT", "BGSCUSDT")
     private var _state: TradeState = Waiting
     private var position: Position? = null
     val state get() = _state
@@ -167,7 +167,7 @@ class BollingerBandSqueeszeTradingMachine(
                             Field("price", event.price),
                             Field("band", event.band),
                             Field("moneyFlowIndex", event.moneyFlowIndex),
-                            Field("candle1h", event.candle)
+                            Field("candle15m", event.candle)
                         )
                     )
                 )
@@ -198,7 +198,7 @@ class BollingerBandSqueeszeTradingMachine(
                             Field("price", event.price),
                             Field("band", event.band),
                             Field("moneyFlowIndex", event.moneyFlowIndex),
-                            Field("candle1h", event.candle)
+                            Field("candle15m", event.candle)
                         )
                     )
                 )
@@ -217,16 +217,20 @@ class BollingerBandSqueeszeTradingMachine(
             logger.info { "🧽 close position" }
 //            bitgetFutureService.flashClose(event.symbol)
 
+            require(position != null) { "position is null" }
+
+            val pnl = (event.price - position!!.entryPrice) * position!!.size
             publisher.publishEvent(
                 SlackEvent(
                     topic = Topic.TRADER,
-                    title = "[${event.symbol}] Request close position",
-                    color = Color.GOOD,
+                    title = "[${event.symbol}] close position",
+                    color = if (pnl > BigDecimal.ZERO) Color.GOOD else Color.DANGER,
                     fields = listOf(
-                        Field("price", event.price),
-                        Field("band", event.band),
-                        Field("moneyFlowIndex", event.moneyFlowIndex),
-                        Field("candle1h", event.candle)
+                        Field("closePrice", event.price),
+                        Field("openPrice", position!!.entryPrice),
+                        Field("Realized PnL", (event.price - position!!.entryPrice) * position!!.size),
+                        Field("holdSide", position!!.side),
+                        Field("sma", event.band.sma),
                     )
                 )
             )
