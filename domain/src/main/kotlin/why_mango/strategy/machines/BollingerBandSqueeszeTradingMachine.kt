@@ -216,8 +216,34 @@ class BollingerBandSqueeszeTradingMachine(
     suspend fun requestingPosition(event: BollingerBandSqueezeEvent): TradeState = state
 
     suspend fun holding(event: BollingerBandSqueezeEvent): TradeState {
+        if (position != null && position!!.symbol == event.symbol && position!!.stopLossPrice > event.price) {
+            logger.info { "🧽 close position" }
+
+            require(position != null) { "position is null" }
+
+            val pnl = (event.price - position!!.entryPrice) * position!!.size
+
+            publisher.publishEvent(
+                SlackEvent(
+                    topic = Topic.TRADER,
+                    title = "[${event.symbol}] StopLoss close position",
+                    color = Color.DANGER,
+                    fields = listOf(
+                        Field("closePrice", event.price),
+                        Field("openPrice", position!!.entryPrice),
+                        Field("Realized PnL", pnl),
+                        Field("holdSide", position!!.side),
+                        Field("sma", event.band.sma),
+                    )
+                )
+            )
+
+            position = null
+            return Waiting
+        }
+
         // 이동평균선에 가격이 닿으면 포지션 종료
-        if (position != null && event.candle.between(event.band.sma)) {
+        if (position != null && position!!.symbol == event.symbol && event.candle.between(event.band.sma)) {
             logger.info { "🧽 close position" }
 //            bitgetFutureService.flashClose(event.symbol)
 
@@ -232,7 +258,7 @@ class BollingerBandSqueeszeTradingMachine(
                     fields = listOf(
                         Field("closePrice", event.price),
                         Field("openPrice", position!!.entryPrice),
-                        Field("Realized PnL", (event.price - position!!.entryPrice) * position!!.size),
+                        Field("Realized PnL", pnl),
                         Field("holdSide", position!!.side),
                         Field("sma", event.band.sma),
                     )
