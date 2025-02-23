@@ -222,7 +222,11 @@ class BollingerBandSqueeszeTradingMachine(
 
             require(position != null) { "position is null" }
 
-            val pnl = (event.price - position!!.entryPrice) * position!!.size
+            val pnl = when (position!!.side) {
+                "long" -> (event.price - position!!.entryPrice) * position!!.size
+                "short" -> (position!!.entryPrice - event.price) * position!!.size
+                else -> BigDecimal.ZERO
+            }
 
             publisher.publishEvent(
                 SlackEvent(
