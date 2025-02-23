@@ -142,6 +142,10 @@ class BollingerBandSqueeszeTradingMachine(
     }
 
     suspend fun waiting(event: BollingerBandSqueezeEvent): TradeState {
+        if (position != null) {
+            return state
+        }
+
         return when {
             event.isLong -> {
 //                bitgetFutureService.openLong(
@@ -213,7 +217,7 @@ class BollingerBandSqueeszeTradingMachine(
 
     suspend fun holding(event: BollingerBandSqueezeEvent): TradeState {
         // 이동평균선에 가격이 닿으면 포지션 종료
-        if (event.candle.between(event.band.sma)) {
+        if (position != null && event.candle.between(event.band.sma)) {
             logger.info { "🧽 close position" }
 //            bitgetFutureService.flashClose(event.symbol)
 
