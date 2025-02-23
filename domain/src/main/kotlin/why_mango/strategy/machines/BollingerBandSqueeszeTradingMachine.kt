@@ -31,7 +31,8 @@ class BollingerBandSqueeszeTradingMachine(
     }
 
     private val logger = KotlinLogging.logger {}
-//    @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
+
+    //    @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val universe = setOf("XRPUSDT", "DOGEUSDT", "ETHUSDT", "TRUMPUSDT", "BGSCUSDT")
     private var _state: TradeState = Waiting
@@ -216,7 +217,7 @@ class BollingerBandSqueeszeTradingMachine(
     suspend fun requestingPosition(event: BollingerBandSqueezeEvent): TradeState = state
 
     suspend fun holding(event: BollingerBandSqueezeEvent): TradeState {
-        if (position != null && position!!.symbol == event.symbol && position!!.stopLossPrice > event.price) {
+        if (position != null && position!!.symbol == event.symbol && ((position!!.side == "long" && position!!.stopLossPrice > event.price) || (position!!.side == "short" && position!!.stopLossPrice < event.price))) {
             logger.info { "🧽 close position" }
 
             require(position != null) { "position is null" }
