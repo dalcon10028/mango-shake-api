@@ -8,6 +8,12 @@ import why_mango.bitget.dto.trade.*
 
 interface BitgetRest {
     /**
+     * Gateway
+     */
+    @RequestLine("POST /api/v2/mix/gateway")
+    suspend fun gatewayPost(@QueryMap params: Map<String, Any>, body: Any): BitgetResponse<Any>
+
+    /**
      * Get ticker data of the given 'productType' and 'symbol'
      * Frequency limit: 20 times/1s (IP)
      */

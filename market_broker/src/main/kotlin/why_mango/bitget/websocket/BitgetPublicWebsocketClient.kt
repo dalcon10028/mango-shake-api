@@ -14,6 +14,7 @@ import okio.ByteString
 import okio.EOFException
 import org.springframework.stereotype.Component
 import why_mango.bitget.config.BitgetProperties
+import why_mango.bitget.dto.Arg
 import why_mango.bitget.dto.BitgetWebsocketResponse
 import why_mango.bitget.dto.websocket.push_event.CandleStickPushEvent
 import why_mango.bitget.dto.websocket.push_event.TickerPushEvent
@@ -38,19 +39,28 @@ class BitgetPublicWebsocketClient(
         .create()
     private var isRunning = false
     private var pingJob: Job? = null
-    private val candles15m = CandleQueue(200)
-    private val candles1h = CandleQueue(200)
-    private val candles1m = CandleQueue(200)
-    private val _priceSharedFlow = MutableSharedFlow<TickerPushEvent>(replay = 1)
+    private val tickerChannelMap: Map<String, MutableSharedFlow<TickerPushEvent>> = mapOf(
+        "XRPUSDT" to MutableSharedFlow(replay = 1),
+        "DOGEUSDT" to MutableSharedFlow(replay = 1),
+    )
 
-    val priceEventFlow
-        get() = _priceSharedFlow.asSharedFlow()
-    val candlestickEventFlow
-        get() = candles1m.candleFlow
-    val candlestickEventFlow1h
-        get() = candles1h.candleFlow
-    val candlestickEventFlow15m
-        get() = candles15m.candleFlow
+    private val candleChannelMap = mapOf(
+        "XRPUSDT_15m" to CandleQueue(
+            symbol = "XRPUSDT",
+            granularity = Granularity.FIFTEEN_MINUTES,
+            maxCandleSize = 200,
+        ),
+        "DOGEUSDT_15m" to CandleQueue(
+            symbol = "DOGEUSDT",
+            granularity = Granularity.FIFTEEN_MINUTES,
+            maxCandleSize = 200,
+        ),
+    )
+
+    val priceEventFlow: Map<String, SharedFlow<TickerPushEvent>>
+        get() = tickerChannelMap.entries.associate { (k, v) -> k to v }
+    val candlestickEventFlow: Map<String, SharedFlow<List<CandleStickPushEvent>>>
+        get() = candleChannelMap.entries.associate { (k, v) -> k to v.candleFlow }
 
 
     fun connect() {
@@ -71,39 +81,25 @@ class BitgetPublicWebsocketClient(
                 startPingJob()
 
                 // 구독 메시지 전송
-                val subscribeMessage = subscribeChannels {
-//                    channel(
-//                        instType = ProductType.USDT_FUTURES,
-//                        channel = CandleStickChannel.CANDLE_1MIN,
-//                        instId = "XRPUSDT"
-//                    )
-//                    channel(
-//                        instType = ProductType.USDT_FUTURES,
-//                        channel = CandleStickChannel.CANDLE_1HOUR,
-//                        instId = "XRPUSDT"
-//                    )
-//                    channel(
-//                        instType = ProductType.USDT_FUTURES,
-//                        channel = TickerChannel.TICKER,
-//                        instId = "XRPUSDT"
-//                    )
-//                    channel(
-//                        instType = ProductType.SUSDT_FUTURES,
-//                        channel = CandleStickChannel.CANDLE_1MIN,
-//                        instId = "SXRPSUSDT"
-//                    )
-                    channel(
-                        instType = ProductType.SUSDT_FUTURES,
-                        channel = CandleStickChannel.CANDLE_15MIN,
-                        instId = "SXRPSUSDT"
-                    )
-                    channel(
-                        instType = ProductType.SUSDT_FUTURES,
-                        channel = TickerChannel.TICKER,
-                        instId = "SXRPSUSDT"
-                    )
-                }
-                webSocket.send(gson.toJson(subscribeMessage))
+                listOf(
+                    tickerChannelMap.keys.map {
+                        SubscribeChannel(
+                            channel = "ticker",
+                            instId = it,
+                        )
+                    },
+                    candleChannelMap.keys.map {
+                        val (instId, granularity) = it.split("_")
+
+                        SubscribeChannel(
+                            channel = "candle${granularity}",
+                            instId = instId,
+                        )
+                    }
+                ).flatten()
+                    .let { BitgetSubscribeRequest(args = it) }
+                    .let { gson.toJson(it) }
+                    .let { webSocket.send(it) }
             }
 
             override fun onMessage(webSocket: WebSocket, text: String) {
@@ -114,8 +110,8 @@ class BitgetPublicWebsocketClient(
                 val baseType = object : TypeToken<BitgetWebsocketResponse<JsonElement>>() {}.type
                 val response: BitgetWebsocketResponse<JsonElement> = gson.fromJson(text, baseType)
                 response.event?.let {
-                    logger.debug { "📩 $it event received ${response.arg}" }
-                } ?: handleResponse(response.arg.channel, response.data)
+                    logger.info { "📩 $it event received ${response.arg}" }
+                } ?: handleResponse(response.arg, response.data)
             }
 
             override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
@@ -145,36 +141,21 @@ class BitgetPublicWebsocketClient(
         client.dispatcher.executorService.shutdown()
     }
 
-    private fun handleResponse(channel: String, json: JsonElement?) {
-        when (channel) {
-            CandleStickChannel.CANDLE_1MIN.value,
-            CandleStickChannel.CANDLE_5MIN.value,
-            CandleStickChannel.CANDLE_30MIN.value,
-            -> {
-                val candlestickType = object : TypeToken<List<List<String>>>() {}.type
-                gson.fromJson<List<List<String>>>(json, candlestickType)
-                    .map { CandleStickPushEvent.from(it) }
-                    .forEach { candles1m.add(it) }
-            }
+    private fun handleResponse(arg: Arg, json: JsonElement?) {
+        val (instType, channel, instId) = arg
+        val granularity = channel.removePrefix("candle")
 
-            CandleStickChannel.CANDLE_15MIN.value, -> {
-                val candlestickType = object : TypeToken<List<List<String>>>() {}.type
-                gson.fromJson<List<List<String>>>(json, candlestickType)
-                    .map { CandleStickPushEvent.from(it) }
-                    .forEach { candles15m.add(it) }
-            }
-
-            CandleStickChannel.CANDLE_1HOUR.value, -> {
-                val candlestickType = object : TypeToken<List<List<String>>>() {}.type
-                gson.fromJson<List<List<String>>>(json, candlestickType)
-                    .map { CandleStickPushEvent.from(it) }
-                    .forEach { candles1h.add(it) }
-            }
-
-            TickerChannel.TICKER.value -> {
+        when {
+            channel == "ticker" -> {
                 val tickerType = object : TypeToken<List<TickerPushEvent>>() {}.type
                 gson.fromJson<List<TickerPushEvent>>(json, tickerType)
-                    .forEach { _priceSharedFlow.tryEmit(it) }
+                    .forEach { tickerChannelMap[it.instId]?.tryEmit(it) }
+            }
+            channel.startsWith("candle") -> {
+                val candlestickType = object : TypeToken<List<List<String>>>() {}.type
+                gson.fromJson<List<List<String>>>(json, candlestickType)
+                    .map { CandleStickPushEvent.from(it) }
+                    .forEach { candleChannelMap["${instId}_$granularity"]?.add(it) }
             }
 
             else -> {

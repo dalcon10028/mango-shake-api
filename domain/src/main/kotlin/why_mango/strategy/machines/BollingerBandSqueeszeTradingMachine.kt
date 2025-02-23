@@ -11,10 +11,8 @@ import why_mango.strategy.indicator.*
 import org.springframework.context.ApplicationEventPublisher
 import why_mango.bitget.BitgetFutureService
 import why_mango.bitget.dto.websocket.push_event.CandleStickPushEvent
-import why_mango.bitget.dto.websocket.push_event.HistoryPositionPushEvent
 import why_mango.bitget.websocket.BitgetPrivateWebsocketClient
 import java.math.BigDecimal
-import java.math.RoundingMode
 
 /**
  * 볼린저 밴드 스퀴즈 매매 머신
@@ -29,66 +27,49 @@ class BollingerBandSqueeszeTradingMachine(
     companion object {
         private const val BALANCE_USD = 100
         private const val LEVERAGE = 10
-        private const val SYMBOL = "SXRPSUSDT"
+        private const val MINUTE15 = "15m"
     }
 
     private val logger = KotlinLogging.logger {}
+//    @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val universe = setOf("XRPUSDT", "DOGEUSDT")
     private var _state: TradeState = Waiting
+    private var position: Position? = null
     val state get() = _state
 
-    private val priceFlow = publicRealtimeClient.priceEventFlow
-        .map { it.lastPr }
-        .distinctUntilChanged()
+    private val priceFlow = universe.associateWith { symbol ->
+        require(publicRealtimeClient.priceEventFlow.containsKey(symbol)) { "priceFlow not found for $symbol" }
+        publicRealtimeClient.priceEventFlow[symbol]!!
+            .map { it.lastPr }
+            .distinctUntilChanged()
+    }
 
-    private val bbFlow = publicRealtimeClient.candlestickEventFlow15m
-        .map { candles -> candles.map { it.close } }
-        .map { candles -> candles.bollingerBands(20) }
-        .map { it.lastOrNull() }
-        .filterNotNull()
+    private val bbFlow = universe.associateWith { symbol ->
+        require(publicRealtimeClient.candlestickEventFlow.containsKey("${symbol}_$MINUTE15")) { "candleStickFlow not found for $symbol" }
+        publicRealtimeClient.candlestickEventFlow["${symbol}_$MINUTE15"]!!
+            .filterNot { it.isEmpty() }
+            .map { candles -> candles.map { it.close } }
+            .map { candles -> candles.bollingerBands(20) }
+            .map { it.lastOrNull() }
+            .filterNotNull()
+    }
 
-    private val moneyFlowIndex = publicRealtimeClient.candlestickEventFlow15m
-        .map { candles -> candles.moneyFlowIndex() }
-        .map { it.lastOrNull() }
-        .filterNotNull()
+
+    private val moneyFlowIndex = universe.associateWith { symbol ->
+        require(publicRealtimeClient.candlestickEventFlow.containsKey("${symbol}_$MINUTE15")) { "candleStickFlow not found for $symbol" }
+        publicRealtimeClient.candlestickEventFlow["${symbol}_$MINUTE15"]!!
+            .filterNot { it.isEmpty() }
+            .map { candles -> candles.moneyFlowIndex() }
+            .map { it.lastOrNull() }
+            .filterNotNull()
+    }
 
     fun subscribeEventFlow() {
-        scope.launch {
-            combine(
-                priceFlow,
-                bbFlow,
-                moneyFlowIndex,
-                publicRealtimeClient.candlestickEventFlow15m.map { it.last() }.filterNotNull(),
-            ) { price, bollingerBand, moneyFlowIndex, candle ->
-//                logger.info { "📈 price: $price, bollingerBand: $bollingerBand, width: ${bollingerBand.width}, moneyFlowIndex: $moneyFlowIndex" }
-                BollingerBandSqueezeEvent(
-                    band = bollingerBand,
-                    moneyFlowIndex = moneyFlowIndex,
-                    price = price,
-                    candle = candle,
-                )
+        universe.forEach { symbol ->
+            scope.launch {
+                runSignalMonitor(symbol)
             }
-                .onEach {
-                    _state = when (state) {
-                        Waiting -> waiting(it)
-                        RequestingPosition -> requestingPosition(it)
-                        Holding -> holding(it)
-                    }
-                }
-                .catch { e ->
-                    logger.error(e) { "error" }
-                    publisher.publishEvent(
-                        SlackEvent(
-                            topic = Topic.ERROR,
-                            title = "[$SYMBOL] Error",
-                            color = Color.DANGER,
-                            fields = listOf(
-                                Field("error", e.message ?: "unknown")
-                            )
-                        )
-                    )
-                }
-                .collect()
         }
 
         scope.launch {
@@ -99,7 +80,7 @@ class BollingerBandSqueeszeTradingMachine(
                     publisher.publishEvent(
                         SlackEvent(
                             topic = Topic.TRADER,
-                            title = "[$SYMBOL] Position closed",
+                            title = "[${event.instId}] Position closed",
                             color = if (event.achievedProfits > BigDecimal.ZERO) Color.GOOD else Color.DANGER,
                             fields = listOf(
                                 Field("posId", event.posId),
@@ -116,24 +97,71 @@ class BollingerBandSqueeszeTradingMachine(
         }
     }
 
+    suspend fun runSignalMonitor(symbol: String) {
+        combine(
+            priceFlow[symbol]!!,
+            bbFlow[symbol]!!,
+            moneyFlowIndex[symbol]!!,
+            publicRealtimeClient.candlestickEventFlow["${symbol}_$MINUTE15"]!!.filterNot { it.isEmpty() }.map { it.last() }.filterNotNull(),
+        ) { price, bollingerBand, moneyFlowIndex, candle ->
+//                logger.info { "📈 [$symbol] price: $price, bollingerBand: $bollingerBand, width: ${bollingerBand.width}, moneyFlowIndex: $moneyFlowIndex" }
+            BollingerBandSqueezeEvent(
+                symbol = symbol,
+                band = bollingerBand,
+                moneyFlowIndex = moneyFlowIndex,
+                price = price,
+                candle = candle,
+            )
+        }
+            .onEach {
+                _state = when (state) {
+                    Waiting -> waiting(it)
+                    RequestingPosition -> requestingPosition(it)
+                    Holding -> holding(it)
+                }
+            }
+            .catch { e ->
+                logger.error(e) { "error" }
+                publisher.publishEvent(
+                    SlackEvent(
+                        topic = Topic.ERROR,
+                        title = "[$symbol] Error",
+                        color = Color.DANGER,
+                        fields = listOf(
+                            Field("error", e.message ?: "unknown")
+                        )
+                    )
+                )
+            }
+            .collect()
+    }
+
     suspend fun closeAll() {
         logger.info { "🧽 close all positions" }
-        bitgetFutureService.flashClose(SYMBOL)
+//        bitgetFutureService.flashClose()
     }
 
     suspend fun waiting(event: BollingerBandSqueezeEvent): TradeState {
         return when {
             event.isLong -> {
-                bitgetFutureService.openLong(
-                    SYMBOL,
+//                bitgetFutureService.openLong(
+//                    SYMBOL,
+//                    size = (BALANCE_USD.toBigDecimal() * LEVERAGE.toBigDecimal() / event.price).setScale(0),
+//                    price = event.price,
+//                    presetStopLossPrice = event.candle.low
+//                )
+                position = Position(
+                    symbol = event.symbol,
+                    side = "long",
                     size = (BALANCE_USD.toBigDecimal() * LEVERAGE.toBigDecimal() / event.price).setScale(0),
-                    price = event.price,
-                    presetStopLossPrice = event.candle.low
+                    entryPrice = event.price,
+                    stopLossPrice = event.candle.low
                 )
+
                 publisher.publishEvent(
                     SlackEvent(
                         topic = Topic.TRADER,
-                        title = "[$SYMBOL] Request open long position",
+                        title = "[${event.symbol}] Request open long position",
                         color = Color.GOOD,
                         fields = listOf(
                             Field("price", event.price),
@@ -147,16 +175,24 @@ class BollingerBandSqueeszeTradingMachine(
             }
 
             event.isShort -> {
-                bitgetFutureService.openShort(
-                    SYMBOL,
+//                bitgetFutureService.openShort(
+//                    SYMBOL,
+//                    size = (BALANCE_USD.toBigDecimal() * LEVERAGE.toBigDecimal() / event.price).setScale(0),
+//                    price = event.price,
+//                    presetStopLossPrice = event.candle.high
+//                )
+
+                position = Position(
+                    symbol = event.symbol,
+                    side = "short",
                     size = (BALANCE_USD.toBigDecimal() * LEVERAGE.toBigDecimal() / event.price).setScale(0),
-                    price = event.price,
-                    presetStopLossPrice = event.candle.high
+                    entryPrice = event.price,
+                    stopLossPrice = event.candle.high
                 )
                 publisher.publishEvent(
                     SlackEvent(
                         topic = Topic.TRADER,
-                        title = "[$SYMBOL] Request open short position",
+                        title = "[${event.symbol}] Request open short position",
                         color = Color.DANGER,
                         fields = listOf(
                             Field("price", event.price),
@@ -177,9 +213,25 @@ class BollingerBandSqueeszeTradingMachine(
 
     suspend fun holding(event: BollingerBandSqueezeEvent): TradeState {
         // 이동평균선에 가격이 닿으면 포지션 종료
-        if (event.candle.low < event.band.sma && event.candle.high > event.band.sma) {
+        if (event.candle.between(event.band.sma)) {
             logger.info { "🧽 close position" }
-            bitgetFutureService.flashClose(SYMBOL)
+//            bitgetFutureService.flashClose(event.symbol)
+
+            publisher.publishEvent(
+                SlackEvent(
+                    topic = Topic.TRADER,
+                    title = "[${event.symbol}] Request close position",
+                    color = Color.GOOD,
+                    fields = listOf(
+                        Field("price", event.price),
+                        Field("band", event.band),
+                        Field("moneyFlowIndex", event.moneyFlowIndex),
+                        Field("candle1h", event.candle)
+                    )
+                )
+            )
+
+            position = null
             return Waiting
         }
 
@@ -187,6 +239,7 @@ class BollingerBandSqueeszeTradingMachine(
     }
 
     data class BollingerBandSqueezeEvent(
+        val symbol: String,
         val band: BollingerBand,
         val moneyFlowIndex: BigDecimal,
         val price: BigDecimal,

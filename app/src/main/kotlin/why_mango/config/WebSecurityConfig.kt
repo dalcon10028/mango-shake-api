@@ -41,6 +41,7 @@ class WebSecurityConfig(
                 authorize(pathMatchers("/webjars/**"), permitAll)
                 authorize(pathMatchers("/v3/api-docs/**"), permitAll)
                 authorize(pathMatchers("/auth/**"), permitAll)
+                authorize(pathMatchers("/bitget/**"), permitAll)
                 authorize(pathMatchers("/oauth2/**"), permitAll)
                 authorize(pathMatchers("/stats/**"), hasRole(Privilege.COMMUNITY_READ.name))
                 authorize(pathMatchers("/admin/**"), hasRole(Role.ADMIN.name))

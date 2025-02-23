@@ -43,6 +43,12 @@ data class CandleStickPushEvent(
      */
     val usdtAmount: BigDecimal
 ) {
+
+    /**
+     * 캔들 고가 저가 사이에 가격이 있는지 확인
+     */
+    fun between(price: BigDecimal): Boolean = price in low..high
+
     companion object {
         fun from(data: List<String>): CandleStickPushEvent {
             return CandleStickPushEvent(

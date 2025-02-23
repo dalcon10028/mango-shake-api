@@ -44,8 +44,8 @@ class BitgetPrivateWebsocketClient(
 
     override fun subscriptionMessage(): BitgetSubscribeRequest = subscribeChannels {
         channel(
-            instType = ProductType.SUSDT_FUTURES,
-            channel = HISTORY_POSITION,
+            instType = ProductType.USDT_FUTURES,
+            channel = "positions-history",
             instId = "default"
         )
 //        channel(
