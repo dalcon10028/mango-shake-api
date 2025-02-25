@@ -217,17 +217,11 @@ class BollingerBandSqueeszeTradingMachine(
     suspend fun requestingPosition(event: BollingerBandSqueezeEvent): TradeState = state
 
     suspend fun holding(event: BollingerBandSqueezeEvent): TradeState {
-        if (position != null && position!!.symbol == event.symbol && ((position!!.side == "long" && position!!.stopLossPrice > event.price) || (position!!.side == "short" && position!!.stopLossPrice < event.price))) {
-            logger.info { "🧽 close position" }
+        if (position == null || position?.symbol != event.symbol) {
+            return state
+        }
 
-            require(position != null) { "position is null" }
-
-            val pnl = when (position!!.side) {
-                "long" -> (event.price - position!!.entryPrice) * position!!.size
-                "short" -> (position!!.entryPrice - event.price) * position!!.size
-                else -> BigDecimal.ZERO
-            }
-
+        val stopLossNotify = fun(pnl: BigDecimal) {
             publisher.publishEvent(
                 SlackEvent(
                     topic = Topic.TRADER,
@@ -242,19 +236,9 @@ class BollingerBandSqueeszeTradingMachine(
                     )
                 )
             )
-
-            position = null
-            return Waiting
         }
 
-        // 이동평균선에 가격이 닿으면 포지션 종료
-        if (position != null && position!!.symbol == event.symbol && event.candle.between(event.band.sma)) {
-            logger.info { "🧽 close position" }
-//            bitgetFutureService.flashClose(event.symbol)
-
-            require(position != null) { "position is null" }
-
-            val pnl = (event.price - position!!.entryPrice) * position!!.size
+        val notify = fun(pnl: BigDecimal) {
             publisher.publishEvent(
                 SlackEvent(
                     topic = Topic.TRADER,
@@ -269,9 +253,35 @@ class BollingerBandSqueeszeTradingMachine(
                     )
                 )
             )
+        }
 
-            position = null
-            return Waiting
+        when {
+            position?.side == "long" && position!!.stopLossPrice < event.price -> {
+                val pnl = (event.price - position!!.entryPrice) * position!!.size
+                stopLossNotify(pnl)
+                position = null
+                return Waiting
+            }
+            position?.side == "short" && position!!.stopLossPrice > event.price -> {
+                val pnl = (position!!.entryPrice - event.price) * position!!.size
+                stopLossNotify(pnl)
+                position = null
+                return Waiting
+            }
+            // 이동평균선에 가격이 닿으면 포지션 종료
+            position?.side == "long" && event.candle.between(event.band.sma) -> {
+                val pnl = (event.price - position!!.entryPrice) * position!!.size
+                notify(pnl)
+                position = null
+                return Waiting
+            }
+            position?.side == "short" && event.candle.between(event.band.sma) -> {
+                val pnl = (position!!.entryPrice - event.price) * position!!.size
+                notify(pnl)
+                position = null
+                return Waiting
+            }
+
         }
 
         return state
