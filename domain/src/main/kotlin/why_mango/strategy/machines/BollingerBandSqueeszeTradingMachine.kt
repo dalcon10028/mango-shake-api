@@ -256,13 +256,13 @@ class BollingerBandSqueeszeTradingMachine(
         }
 
         when {
-            position?.side == "long" && position!!.stopLossPrice < event.price -> {
+            position?.side == "long" && position!!.stopLossPrice > event.price -> {
                 val pnl = (event.price - position!!.entryPrice) * position!!.size
                 stopLossNotify(pnl)
                 position = null
                 return Waiting
             }
-            position?.side == "short" && position!!.stopLossPrice > event.price -> {
+            position?.side == "short" && position!!.stopLossPrice < event.price -> {
                 val pnl = (position!!.entryPrice - event.price) * position!!.size
                 stopLossNotify(pnl)
                 position = null
