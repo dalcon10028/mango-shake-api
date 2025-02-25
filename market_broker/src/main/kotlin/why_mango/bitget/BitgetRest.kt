@@ -54,4 +54,11 @@ interface BitgetRest {
      */
     @RequestLine("POST /api/v2/mix/order/close-positions")
     suspend fun flashClosePosition(body: FlashClosePositionRequest): BitgetResponse<FlashClosePositionResponse>
+
+    /**
+     * Interface is used to get future contract details.
+     * Rate Limit: 20 req/sec/IP
+     */
+    @RequestLine("GET /api/v2/mix/market/contracts")
+    suspend fun getContractConfig(@QueryMap query: ContractConfigQuery): BitgetResponse<List<ContractConfigResponse>>
 }

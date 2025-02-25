@@ -139,4 +139,10 @@ class BitgetFutureService(
             )
         ).data.failureList.isEmpty()
 
+    suspend fun getContractConfig(symbol: String): ContractConfigResponse =
+        bitgetRest.getContractConfig(
+            ContractConfigQuery(
+                symbol = symbol
+            )
+        ).data.first { it.symbol == symbol }
 }

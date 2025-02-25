@@ -13,6 +13,7 @@ import why_mango.bitget.BitgetFutureService
 import why_mango.bitget.dto.websocket.push_event.CandleStickPushEvent
 import why_mango.bitget.websocket.BitgetPrivateWebsocketClient
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 /**
  * 볼린저 밴드 스퀴즈 매매 머신
@@ -158,7 +159,7 @@ class BollingerBandSqueeszeTradingMachine(
                 position = Position(
                     symbol = event.symbol,
                     side = "long",
-                    size = (BALANCE_USD.toBigDecimal() * LEVERAGE.toBigDecimal() / event.price).setScale(0),
+                    size = orderSize(event.symbol, event.price),
                     entryPrice = event.price,
                     stopLossPrice = event.candle.low
                 )
@@ -190,7 +191,7 @@ class BollingerBandSqueeszeTradingMachine(
                 position = Position(
                     symbol = event.symbol,
                     side = "short",
-                    size = (BALANCE_USD.toBigDecimal() * LEVERAGE.toBigDecimal() / event.price).setScale(0),
+                    size = orderSize(event.symbol, event.price),
                     entryPrice = event.price,
                     stopLossPrice = event.candle.high
                 )
@@ -262,6 +263,7 @@ class BollingerBandSqueeszeTradingMachine(
                 position = null
                 return Waiting
             }
+
             position?.side == "short" && position!!.stopLossPrice < event.price -> {
                 val pnl = (position!!.entryPrice - event.price) * position!!.size
                 stopLossNotify(pnl)
@@ -275,6 +277,7 @@ class BollingerBandSqueeszeTradingMachine(
                 position = null
                 return Waiting
             }
+
             position?.side == "short" && event.candle.between(event.band.sma) -> {
                 val pnl = (position!!.entryPrice - event.price) * position!!.size
                 notify(pnl)
@@ -285,6 +288,18 @@ class BollingerBandSqueeszeTradingMachine(
         }
 
         return state
+    }
+
+    private suspend fun orderSize(symbol: String, price: BigDecimal): BigDecimal {
+        val contractConfig = bitgetFutureService.getContractConfig(symbol)
+        val sizeMultiplier = contractConfig.sizeMultiplier
+        val rawSize = BALANCE_USD.toBigDecimal() * LEVERAGE.toBigDecimal() / price
+
+        // rawSize가 sizeMultiplier의 몇 배인지 계산 후, 그 배수에 맞춰 조정
+        val multiplierCount = rawSize.divide(sizeMultiplier, 0, RoundingMode.DOWN)
+        return multiplierCount.multiply(sizeMultiplier)
+            // sizeMultiplier의 소수점 자릿수를 유지하도록 setScale
+            .setScale(sizeMultiplier.stripTrailingZeros().scale(), RoundingMode.DOWN)
     }
 
     data class BollingerBandSqueezeEvent(
