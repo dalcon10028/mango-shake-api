@@ -4,6 +4,7 @@ import com.ninjasquad.springmockk.MockkBean
 import com.ninjasquad.springmockk.MockkBeans
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import org.springframework.boot.test.context.SpringBootTest
 import why_mango.bitget.enums.Granularity
 import why_mango.component.slack.SlackEventListener
@@ -57,5 +58,11 @@ class BitgetFutureServiceTest(
         )
 
         response shouldBe true
+    }
+
+    test("getContractConfig") {
+        val response = bitgetFutureService.getContractConfig("XRPUSDT")
+
+        response shouldNotBe null
     }
 })

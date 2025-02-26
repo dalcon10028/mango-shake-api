@@ -146,7 +146,7 @@ data class ContractConfigResponse(
     /**
      * Listing time
      */
-    val launchTime: Long,
+    val launchTime: String,
 
     /**
      * Funding fee settlement cycle, hourly/every 8 hours
@@ -171,5 +171,5 @@ data class ContractConfigResponse(
     /**
      * Maintenance time (there will be a value when the status is under maintenance/upcoming maintenance)
      */
-    val maintainTime: Long,
+    val maintainTime: String,
 )

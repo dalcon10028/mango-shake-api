@@ -142,7 +142,8 @@ class BitgetFutureService(
     suspend fun getContractConfig(symbol: String): ContractConfigResponse =
         bitgetRest.getContractConfig(
             ContractConfigQuery(
-                symbol = symbol
+                symbol = symbol,
+                productType = getProductType(symbol)
             )
         ).data.first { it.symbol == symbol }
 }
