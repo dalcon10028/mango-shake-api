@@ -171,6 +171,7 @@ class BollingerBandSqueeszeTradingMachine(
                         color = Color.GOOD,
                         fields = listOf(
                             Field("price", event.price),
+                            Field("size", orderSize(event.symbol, event.price)),
                             Field("band", event.band),
                             Field("moneyFlowIndex", event.moneyFlowIndex),
                             Field("candle15m", event.candle)
@@ -202,6 +203,7 @@ class BollingerBandSqueeszeTradingMachine(
                         color = Color.DANGER,
                         fields = listOf(
                             Field("price", event.price),
+                            Field("size", orderSize(event.symbol, event.price)),
                             Field("band", event.band),
                             Field("moneyFlowIndex", event.moneyFlowIndex),
                             Field("candle15m", event.candle)
