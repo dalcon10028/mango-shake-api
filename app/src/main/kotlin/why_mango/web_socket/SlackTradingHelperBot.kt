@@ -8,12 +8,11 @@ import kotlinx.coroutines.*
 import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import why_mango.strategy.machines.BollingerBandSqueeszeTradingMachine
-import why_mango.strategy.machines.StefanoTradingMachine
+import why_mango.strategy.machines.BollingerBandTradingMachine
 
 @Configuration
 class SlackTradingHelperBot(
-    private val machine: BollingerBandSqueeszeTradingMachine,
+    private val machine: BollingerBandTradingMachine,
 ) {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 

@@ -6,6 +6,8 @@ import why_mango.bitget.websocket.BitgetPublicWebsocketClient
 import why_mango.strategy.model.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import why_mango.component.slack.*
 import why_mango.strategy.indicator.*
 import org.springframework.context.ApplicationEventPublisher
@@ -19,14 +21,14 @@ import java.math.RoundingMode
  * 볼린저 밴드 스퀴즈 매매 머신
  */
 @Service
-class BollingerBandSqueeszeTradingMachine(
+class BollingerBandTradingMachine(
     private val publicRealtimeClient: BitgetPublicWebsocketClient,
     private val privateRealtimeClient: BitgetPrivateWebsocketClient,
     private val bitgetFutureService: BitgetFutureService,
     private val publisher: ApplicationEventPublisher,
 ) {
     companion object {
-        private const val BALANCE_USD = 100
+        private const val BALANCE_USD = 50
         private const val LEVERAGE = 10
         private const val MINUTE15 = "15m"
     }
@@ -35,9 +37,10 @@ class BollingerBandSqueeszeTradingMachine(
 
     //    @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private val universe = setOf("XRPUSDT", "DOGEUSDT", "ETHUSDT", "TRUMPUSDT", "BGSCUSDT")
+    private val universe = setOf("XRPUSDT", "DOGEUSDT", "ETHUSDT", "TRUMPUSDT")
     private var _state: TradeState = Waiting
     private var position: Position? = null
+    private val stateMutex = Mutex()
     val state get() = _state
 
     private val priceFlow = universe.associateWith { symbol ->
@@ -116,10 +119,12 @@ class BollingerBandSqueeszeTradingMachine(
             )
         }
             .onEach {
-                _state = when (state) {
-                    Waiting -> waiting(it)
-                    RequestingPosition -> requestingPosition(it)
-                    Holding -> holding(it)
+                stateMutex.withLock {
+                    _state = when (state) {
+                        Waiting -> waiting(it)
+                        RequestingPosition -> requestingPosition(it)
+                        Holding -> holding(it)
+                    }
                 }
             }
             .catch { e ->
@@ -150,12 +155,12 @@ class BollingerBandSqueeszeTradingMachine(
 
         return when {
             event.isLong -> {
-//                bitgetFutureService.openLong(
-//                    SYMBOL,
-//                    size = (BALANCE_USD.toBigDecimal() * LEVERAGE.toBigDecimal() / event.price).setScale(0),
-//                    price = event.price,
-//                    presetStopLossPrice = event.candle.low
-//                )
+                bitgetFutureService.openLong(
+                    symbol = event.symbol,
+                    size = (BALANCE_USD.toBigDecimal() * LEVERAGE.toBigDecimal() / event.price).setScale(0),
+                    price = event.price,
+                    presetStopLossPrice = event.candle.low
+                )
                 position = Position(
                     symbol = event.symbol,
                     side = "long",
@@ -182,12 +187,12 @@ class BollingerBandSqueeszeTradingMachine(
             }
 
             event.isShort -> {
-//                bitgetFutureService.openShort(
-//                    SYMBOL,
-//                    size = (BALANCE_USD.toBigDecimal() * LEVERAGE.toBigDecimal() / event.price).setScale(0),
-//                    price = event.price,
-//                    presetStopLossPrice = event.candle.high
-//                )
+                bitgetFutureService.openShort(
+                    symbol = event.symbol,
+                    size = (BALANCE_USD.toBigDecimal() * LEVERAGE.toBigDecimal() / event.price).setScale(0),
+                    price = event.price,
+                    presetStopLossPrice = event.candle.high
+                )
 
                 position = Position(
                     symbol = event.symbol,

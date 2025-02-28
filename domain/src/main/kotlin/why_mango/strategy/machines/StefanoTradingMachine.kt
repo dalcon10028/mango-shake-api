@@ -6,6 +6,7 @@ import why_mango.bitget.websocket.BitgetPublicWebsocketClient
 import why_mango.strategy.model.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
 import org.springframework.context.ApplicationEventPublisher
 import why_mango.bitget.BitgetFutureService
 import why_mango.bitget.dto.websocket.push_event.HistoryPositionPushEvent
@@ -32,7 +33,7 @@ class StefanoTradingMachine(
     private val publisher: ApplicationEventPublisher,
 ) {
     companion object {
-        private const val BALANCE_USD = 100
+        private const val BALANCE_USD = 50
         private const val LEVERAGE = 10
         private const val SYMBOL = "XRPUSDT"
     }
