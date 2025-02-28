@@ -40,6 +40,7 @@ class BollingerBandTradingMachine(
     private val universe = setOf("XRPUSDT", "DOGEUSDT", "ETHUSDT", "TRUMPUSDT")
     private var _state: TradeState = Waiting
     private var position: Position? = null
+    private var lastSignal: BollingerBandEvent? = null
     private val stateMutex = Mutex()
     val state get() = _state
 
@@ -110,7 +111,7 @@ class BollingerBandTradingMachine(
             publicRealtimeClient.candlestickEventFlow["${symbol}_$MINUTE15"]!!.filterNot { it.isEmpty() }.map { it.last() }.filterNotNull(),
         ) { price, bollingerBand, moneyFlowIndex, candle ->
 //                logger.info { "📈 [$symbol] price: $price, bollingerBand: $bollingerBand, width: ${bollingerBand.width}, moneyFlowIndex: $moneyFlowIndex" }
-            BollingerBandSqueezeEvent(
+            BollingerBandEvent(
                 symbol = symbol,
                 band = bollingerBand,
                 moneyFlowIndex = moneyFlowIndex,
@@ -148,8 +149,12 @@ class BollingerBandTradingMachine(
 //        bitgetFutureService.flashClose()
     }
 
-    suspend fun waiting(event: BollingerBandSqueezeEvent): TradeState {
+    suspend fun waiting(event: BollingerBandEvent): TradeState {
         if (position != null) {
+            return state
+        }
+
+        if (lastSignal != null && lastSignal?.candle?.timestamp == event.candle.timestamp) {
             return state
         }
 
@@ -168,6 +173,7 @@ class BollingerBandTradingMachine(
                     entryPrice = event.price,
                     stopLossPrice = event.candle.low
                 )
+                lastSignal = event
 
                 publisher.publishEvent(
                     SlackEvent(
@@ -201,6 +207,7 @@ class BollingerBandTradingMachine(
                     entryPrice = event.price,
                     stopLossPrice = event.candle.high
                 )
+                lastSignal = event
                 publisher.publishEvent(
                     SlackEvent(
                         topic = Topic.TRADER,
@@ -222,9 +229,9 @@ class BollingerBandTradingMachine(
         }
     }
 
-    suspend fun requestingPosition(event: BollingerBandSqueezeEvent): TradeState = state
+    suspend fun requestingPosition(event: BollingerBandEvent): TradeState = state
 
-    suspend fun holding(event: BollingerBandSqueezeEvent): TradeState {
+    suspend fun holding(event: BollingerBandEvent): TradeState {
         if (position == null || position?.symbol != event.symbol) {
             return state
         }
@@ -309,7 +316,7 @@ class BollingerBandTradingMachine(
             .setScale(sizeMultiplier.stripTrailingZeros().scale(), RoundingMode.DOWN)
     }
 
-    data class BollingerBandSqueezeEvent(
+    data class BollingerBandEvent(
         val symbol: String,
         val band: BollingerBand,
         val moneyFlowIndex: BigDecimal,
