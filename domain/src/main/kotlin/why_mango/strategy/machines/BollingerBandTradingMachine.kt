@@ -66,7 +66,7 @@ class BollingerBandTradingMachine(
         require(publicRealtimeClient.candlestickEventFlow.containsKey("${symbol}_$MINUTE15")) { "candleStickFlow not found for $symbol" }
         publicRealtimeClient.candlestickEventFlow["${symbol}_$MINUTE15"]!!
             .filterNot { it.isEmpty() }
-            .map { candles -> candles.moneyFlowIndex() }
+            .map { candles -> candles.moneyFlowIndex(24) }
             .map { it.lastOrNull() }
             .filterNotNull()
     }
