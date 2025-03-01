@@ -160,12 +160,6 @@ class BollingerBandTradingMachine(
 
         return when {
             event.isLong -> {
-                bitgetFutureService.openLong(
-                    symbol = event.symbol,
-                    size = (BALANCE_USD.toBigDecimal() * LEVERAGE.toBigDecimal() / event.price).setScale(0),
-                    price = event.price,
-                    presetStopLossPrice = event.candle.low
-                )
                 position = Position(
                     symbol = event.symbol,
                     side = "long",
@@ -189,17 +183,16 @@ class BollingerBandTradingMachine(
                         )
                     )
                 )
+                bitgetFutureService.openLong(
+                    symbol = event.symbol,
+                    size = (BALANCE_USD.toBigDecimal() * LEVERAGE.toBigDecimal() / event.price).setScale(0),
+                    price = event.price,
+                    presetStopLossPrice = event.candle.low
+                )
                 Holding
             }
 
             event.isShort -> {
-                bitgetFutureService.openShort(
-                    symbol = event.symbol,
-                    size = (BALANCE_USD.toBigDecimal() * LEVERAGE.toBigDecimal() / event.price).setScale(0),
-                    price = event.price,
-                    presetStopLossPrice = event.candle.high
-                )
-
                 position = Position(
                     symbol = event.symbol,
                     side = "short",
@@ -221,6 +214,12 @@ class BollingerBandTradingMachine(
                             Field("candle15m", event.candle)
                         )
                     )
+                )
+                bitgetFutureService.openShort(
+                    symbol = event.symbol,
+                    size = (BALANCE_USD.toBigDecimal() * LEVERAGE.toBigDecimal() / event.price).setScale(0),
+                    price = event.price,
+                    presetStopLossPrice = event.candle.high
                 )
                 Holding
             }
