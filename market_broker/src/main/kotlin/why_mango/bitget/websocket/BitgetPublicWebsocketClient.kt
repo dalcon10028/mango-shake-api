@@ -45,6 +45,7 @@ class BitgetPublicWebsocketClient(
         "ETHUSDT" to MutableSharedFlow(replay = 1),
         "TRUMPUSDT" to MutableSharedFlow(replay = 1),
         "BGSCUSDT" to MutableSharedFlow(replay = 1),
+        "SOLUSDT" to MutableSharedFlow(replay = 1),
     )
 
     private val candleChannelMap = mapOf(
@@ -70,6 +71,11 @@ class BitgetPublicWebsocketClient(
         ),
         "BGSCUSDT_15m" to CandleQueue(
             symbol = "BGSCUSDT",
+            granularity = Granularity.FIFTEEN_MINUTES,
+            maxCandleSize = 200,
+        ),
+        "SOLUSDT_15m" to CandleQueue(
+            symbol = "SOLUSDT",
             granularity = Granularity.FIFTEEN_MINUTES,
             maxCandleSize = 200,
         ),

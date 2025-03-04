@@ -37,7 +37,7 @@ class BollingerBandTradingMachine(
 
     //    @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private val universe = setOf("XRPUSDT", "DOGEUSDT", "ETHUSDT", "TRUMPUSDT")
+    private val universe = setOf("XRPUSDT", "DOGEUSDT", "ETHUSDT", "TRUMPUSDT", "SOLUSDT")
     private var _state: TradeState = Waiting
     private var position: Position? = null
     private var lastSignal: BollingerBandEvent? = null
@@ -123,7 +123,7 @@ class BollingerBandTradingMachine(
                 stateMutex.withLock {
                     _state = when (state) {
                         Waiting -> waiting(it)
-                        RequestingPosition -> requestingPosition(it)
+                        Pause -> pause(it)
                         Holding -> holding(it)
                     }
                 }
@@ -228,7 +228,7 @@ class BollingerBandTradingMachine(
         }
     }
 
-    suspend fun requestingPosition(event: BollingerBandEvent): TradeState = state
+    suspend fun pause(event: BollingerBandEvent): TradeState = state
 
     suspend fun holding(event: BollingerBandEvent): TradeState {
         if (position == null || position?.symbol != event.symbol) {

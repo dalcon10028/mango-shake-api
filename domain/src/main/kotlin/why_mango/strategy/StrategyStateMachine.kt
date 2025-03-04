@@ -8,14 +8,14 @@ interface StrategyStateMachine {
     suspend fun handle(event: StrategyEvent) {
         state = when (state) {
             is Waiting -> waiting(event)
-            is RequestingPosition -> requestingPosition(event)
+            is Pause -> pause(event)
             is Holding -> holding(event)
         }
     }
 
     suspend fun waiting(event: StrategyEvent): TradeState
 
-    suspend fun requestingPosition(event: StrategyEvent): TradeState
+    suspend fun pause(event: StrategyEvent): TradeState
 
     suspend fun holding(event: StrategyEvent): TradeState
 }
