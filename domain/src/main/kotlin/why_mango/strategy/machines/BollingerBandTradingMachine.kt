@@ -28,8 +28,8 @@ class BollingerBandTradingMachine(
     private val publisher: ApplicationEventPublisher,
 ) {
     companion object {
-        private const val BALANCE_USD = 50
-        private const val LEVERAGE = 10
+        private const val BALANCE_USD = 100
+        private const val LEVERAGE = 5
         private const val MINUTE15 = "15m"
     }
 
@@ -303,10 +303,10 @@ class BollingerBandTradingMachine(
         return state
     }
 
-    private suspend fun orderSize(symbol: String, price: BigDecimal): BigDecimal {
+    suspend fun orderSize(symbol: String, price: BigDecimal): BigDecimal {
         val contractConfig = bitgetFutureService.getContractConfig(symbol)
         val sizeMultiplier = contractConfig.sizeMultiplier
-        val rawSize = BALANCE_USD.toBigDecimal() * LEVERAGE.toBigDecimal() / price
+        val rawSize = BALANCE_USD.toBigDecimal().setScale(10) * LEVERAGE.toBigDecimal() / price
 
         // rawSize가 sizeMultiplier의 몇 배인지 계산 후, 그 배수에 맞춰 조정
         val multiplierCount = rawSize.divide(sizeMultiplier, 0, RoundingMode.DOWN)

@@ -14,8 +14,6 @@ class MovingAverageKtTest : StringSpec({
         val result = list.ema(
             period = 3,
             scale = 10,           // 내부 계산 정밀도
-            finalScale = 2,       // 최종 반올림 자리수
-            roundingMode = RoundingMode.HALF_UP
         )
 
         // 예상 결과:
@@ -49,7 +47,7 @@ class MovingAverageKtTest : StringSpec({
             BigDecimal("7.89")
         )
         val expected = list.map { it.setScale(2, RoundingMode.HALF_UP) }
-        list.ema(period = 1, scale = 10, finalScale = 2, roundingMode = RoundingMode.HALF_UP) shouldBe expected
+        list.ema(period = 1, scale = 10) shouldBe expected
     }
 
     "Period equals list size returns SMA only" {
@@ -63,7 +61,7 @@ class MovingAverageKtTest : StringSpec({
         val sma = list.reduce(BigDecimal::add)
             .divide(BigDecimal(list.size), 10, RoundingMode.HALF_UP)
             .setScale(2, RoundingMode.HALF_UP)
-        list.ema(period = list.size, scale = 10, finalScale = 2, roundingMode = RoundingMode.HALF_UP) shouldBe listOf(sma)
+        list.ema(period = list.size, scale = 10) shouldBe listOf(sma)
     }
 
     "Negative period throws IllegalArgumentException" {
@@ -90,8 +88,6 @@ class MovingAverageKtTest : StringSpec({
         val result = list.ema(
             period = 3,
             scale = 10,
-            finalScale = 2,
-            roundingMode = RoundingMode.DOWN
         )
         // 계산 과정:
         // 초기 SMA: (1+2+3)/3 = 2.00

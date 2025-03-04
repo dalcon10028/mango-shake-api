@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    include: shared, market-broker, finance
   r2dbc:
     url: r2dbc:h2:mem:///testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false
     username: sa
@@ -14,6 +16,14 @@ spring:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false
     user: sa
     password:
+
+bitget:
+  base-url: https://api.bitget.com
+  websocket-public-url: wss://ws.bitget.com/v2/ws/public
+  websocket-private-url: wss://ws.bitget.com/v2/ws/private
+  passphrase: ${BITGET_PASSPHRASE}
+  access-key: ${BITGET_ACCESS_KEY}
+  secret-key: ${BITGET_SECRET_KEY}
 
 logging:
   level:

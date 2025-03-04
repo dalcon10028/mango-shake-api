@@ -32,9 +32,9 @@ insert into ticker_symbol (symbol, base_currency, name, market) values ('XRP','K
 insert into ticker_symbol (symbol, base_currency, name, market) values ('TRX','KRW','TRON','CRYPTO_CURRENCY');
 insert into ticker_symbol (symbol, base_currency, name, market) values ('TON','KRW','Toncoin','CRYPTO_CURRENCY');
 insert into ticker_symbol (symbol, base_currency, name, market) values ('ADA','KRW','Cardano','CRYPTO_CURRENCY');
-insert into ticker_symbol (symbol, base_currency, name, market) values ('SHIB','KRW','Shiba' 'Inu,CRYPTO_CURRENCY');
+insert into ticker_symbol (symbol, base_currency, name, market) values ('SHIB','KRW','Shiba Inu','CRYPTO_CURRENCY');
 insert into ticker_symbol (symbol, base_currency, name, market) values ('LINK','KRW','Chainlink','CRYPTO_CURRENCY');
-insert into ticker_symbol (symbol, base_currency, name, market) values ('BCH','KRW','Bitcoin' 'Cash,CRYPTO_CURRENCY');
+insert into ticker_symbol (symbol, base_currency, name, market) values ('BCH','KRW','Bitcoin Cash', 'CRYPTO_CURRENCY');
 insert into ticker_symbol (symbol, base_currency, name, market) values ('DOT','KRW','Polkadot','CRYPTO_CURRENCY');
 
 create table if not exists wallet (
