@@ -29,7 +29,7 @@ class BollingerBandTradingMachine(
 ) {
     companion object {
         private const val BALANCE_USD = 100
-        private const val LEVERAGE = 5
+        private const val LEVERAGE = 10
         private const val MINUTE15 = "15m"
     }
 
@@ -37,7 +37,7 @@ class BollingerBandTradingMachine(
 
     //    @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private val universe = setOf("XRPUSDT", "DOGEUSDT", "ETHUSDT", "TRUMPUSDT", "SOLUSDT")
+    private val universe = setOf("XRPUSDT", "DOGEUSDT", "SOLUSDT")
     private var _state: TradeState = Waiting
     private var position: Position? = null
     private var lastSignal: BollingerBandEvent? = null
