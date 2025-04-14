@@ -1,9 +1,9 @@
 package why_mango.bitget
 
-import org.springframework.http.HttpMethod
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
+import why_mango.bitget.dto.account.*
 import why_mango.bitget.dto.market.*
 import why_mango.bitget.dto.trade.*
 import why_mango.bitget.enums.*
@@ -26,10 +26,19 @@ class BitgetFutureService(
 
     private fun getMarginCoin(symbol: String) = if (demoSymbolSet.contains(symbol)) "SUSDT" else "USDT"
 
+    suspend fun getAccount(symbol: String): AccountResponse =
+        bitgetRest.getAccount(
+            AccountQuery(
+                symbol = symbol,
+                productType = getProductType(symbol),
+                marginCoin = getMarginCoin(symbol)
+            )
+        ).data
+
     suspend fun getTicker(symbol: String): TickerResponse =
         bitgetRest.getTicker(
             TickerQuery(
-                symbol = symbol,
+                symbol = symbol.lowercase(),
                 productType = getProductType(symbol)
             )
         ).data[0]
@@ -107,7 +116,7 @@ class BitgetFutureService(
         size: BigDecimal,
         price: BigDecimal? = null,
         orderId: String? = null,
-        presetStopSurplusPrice: BigDecimal?= null,
+        presetStopSurplusPrice: BigDecimal? = null,
         presetStopLossPrice: BigDecimal? = null,
     ): PlaceOrderResponse {
         val request = PlaceOrderRequest(

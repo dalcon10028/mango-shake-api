@@ -5,13 +5,13 @@ import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import why_mango.bitget.websocket.*
-import why_mango.strategy.machines.BollingerBandTradingMachine
+import why_mango.strategy.bollinger_bands_trend.BollingerBandTrendTradingMachine
 
 @Configuration
 class WebSocketInitializer(
     private val publicClient: BitgetPublicWebsocketClient,
     private val privateClient: BitgetPrivateWebsocketClient,
-    private val bollingerBandSqueeszeTradingMachine: BollingerBandTradingMachine
+    private val bollingerBandSqueeszeTradingMachine: BollingerBandTrendTradingMachine
 //    private val bitgetWebSocketClient2: BitgetWebSocketClient2
 ) {
     @Bean

@@ -2,6 +2,7 @@ package why_mango.bitget
 
 import feign.*
 import why_mango.bitget.dto.*
+import why_mango.bitget.dto.account.*
 import why_mango.bitget.dto.market.*
 import why_mango.bitget.dto.position.*
 import why_mango.bitget.dto.trade.*
@@ -12,6 +13,13 @@ interface BitgetRest {
      */
     @RequestLine("POST /api/v2/mix/gateway")
     suspend fun gatewayPost(@QueryMap params: Map<String, Any>, body: Any): BitgetResponse<Any>
+
+    /**
+     * Get account details with the given 'marginCoin' and 'productType'
+     * Frequency limit: 10 times/1s (uid)
+     */
+    @RequestLine("GET /api/v2/mix/account/account")
+    suspend fun getAccount(@QueryMap query: AccountQuery): BitgetResponse<AccountResponse>
 
     /**
      * Get ticker data of the given 'productType' and 'symbol'

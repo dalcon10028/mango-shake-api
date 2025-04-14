@@ -18,6 +18,11 @@ import java.util.UUID
 class BitgetFutureServiceTest(
     private val bitgetFutureService: BitgetFutureService,
 ) : FunSpec({
+    test("getAccount") {
+        val account = bitgetFutureService.getAccount("XRPUSDT")
+        account shouldNotBe null
+    }
+
     test("getCandlestick") {
         val candlestick = bitgetFutureService.getCandlestick(
             "BTCUSDT", Granularity.ONE_MINUTE, 10

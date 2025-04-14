@@ -40,8 +40,8 @@ class StefanoTradingMachine(
 
     private val logger = KotlinLogging.logger {}
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private var _state: TradeState = Waiting
-    val state get() = _state
+//    private var _state: TradeState = Waiting
+//    val state get() = _state
 
 //    private val priceFlow = publicRealtimeClient.priceEventFlow
 //        .map { it.lastPr }
