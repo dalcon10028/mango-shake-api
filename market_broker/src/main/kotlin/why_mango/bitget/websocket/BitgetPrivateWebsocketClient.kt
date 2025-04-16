@@ -39,6 +39,15 @@ class BitgetPrivateWebsocketClient(
 
     private val _sxrpsusdtPositionHistoryChannel = MutableSharedFlow<HistoryPositionPushEvent>(replay = 1)
     val sxrpsusdtPositionHistoryChannel: SharedFlow<HistoryPositionPushEvent> = _sxrpsusdtPositionHistoryChannel.asSharedFlow()
+
+    private val _positionHistoryChannel: Map<String, MutableSharedFlow<HistoryPositionPushEvent>> = mapOf(
+        "XRPUSDT" to MutableSharedFlow(replay = 1),
+        "DOGEUSDT" to MutableSharedFlow(replay = 1),
+        "ETHUSDT" to MutableSharedFlow(replay = 1),
+        "SOLUSDT" to MutableSharedFlow(replay = 1),
+    )
+    val positionHistoryChannel: Map<String, SharedFlow<HistoryPositionPushEvent>> = _positionHistoryChannel.mapValues { it.value.asSharedFlow() }
+
     private val _xrpusdtPositionHistoryChannel = MutableSharedFlow<HistoryPositionPushEvent>(replay = 1)
     val xrpusdtPositionHistoryChannel: SharedFlow<HistoryPositionPushEvent> = _xrpusdtPositionHistoryChannel.asSharedFlow()
 
@@ -86,10 +95,8 @@ class BitgetPrivateWebsocketClient(
                 parseJson<List<HistoryPositionPushEvent>>(response.data).forEach {
                     when (it.instId) {
                         "SXRPSUSDT" -> _sxrpsusdtPositionHistoryChannel.tryEmit(it)
-                        "XRPUSDT" -> _xrpusdtPositionHistoryChannel.tryEmit(it)
-                        else -> logger.warn { "Unknown instId: ${it.instId}" }
+                        else -> _positionHistoryChannel[it.instId]?.tryEmit(it)
                     }
-
                 }
             }
 

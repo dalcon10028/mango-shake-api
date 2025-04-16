@@ -91,6 +91,7 @@ class BollingerBandTrendTradingMachine(
 //        }
 //    }
 
+        @OptIn(ExperimentalCoroutinesApi::class)
         fun subscribeEventFlow() {
             properties.universe.forEach { symbol ->
                 scope.launch {
@@ -100,7 +101,9 @@ class BollingerBandTrendTradingMachine(
 
             scope.launch {
                 // NOTE: 포지션 종료 이벤트 수신
-                privateRealtimeClient.sxrpsusdtPositionHistoryChannel
+                privateRealtimeClient.positionHistoryChannel.values
+                    .asFlow()
+                    .flattenConcat()
                     .onEach { logger.info { "position: $it" } }
                     .onEach { event ->
                         publisher.publishEvent(
