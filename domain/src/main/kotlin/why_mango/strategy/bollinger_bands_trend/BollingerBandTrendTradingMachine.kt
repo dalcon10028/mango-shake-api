@@ -32,11 +32,6 @@ class BollingerBandTrendTradingMachine(
     private val publisher: ApplicationEventPublisher,
     private val properties: BollingerBandTrendProperties,
 ) {
-    companion object {
-        private const val BALANCE_USD = 100
-        private const val LEVERAGE = 10
-        private const val MINUTE15 = "15m"
-    }
 
     private val logger = KotlinLogging.logger {}
 
@@ -55,8 +50,8 @@ class BollingerBandTrendTradingMachine(
     }
 
     private val bbFlow = properties.universe.associateWith { symbol ->
-        require(publicRealtimeClient.candlestickEventFlow.containsKey("${symbol}_$MINUTE15")) { "candleStickFlow not found for $symbol" }
-        publicRealtimeClient.candlestickEventFlow["${symbol}_$MINUTE15"]!!
+        require(publicRealtimeClient.candlestickEventFlow.containsKey("${symbol}_${properties.timePeriod}")) { "candleStickFlow not found for $symbol" }
+        publicRealtimeClient.candlestickEventFlow["${symbol}_${properties.timePeriod}"]!!
             .filterNot { it.isEmpty() }
             .map { candles -> candles.map { it.close } }
             .map { candles -> candles.bollingerBands(20) }
@@ -66,8 +61,8 @@ class BollingerBandTrendTradingMachine(
 
 
     private val moneyFlowIndex = properties.universe.associateWith { symbol ->
-        require(publicRealtimeClient.candlestickEventFlow.containsKey("${symbol}_$MINUTE15")) { "candleStickFlow not found for $symbol" }
-        publicRealtimeClient.candlestickEventFlow["${symbol}_$MINUTE15"]!!
+        require(publicRealtimeClient.candlestickEventFlow.containsKey("${symbol}_${properties.timePeriod}")) { "candleStickFlow not found for $symbol" }
+        publicRealtimeClient.candlestickEventFlow["${symbol}_${properties.timePeriod}"]!!
             .filterNot { it.isEmpty() }
             .map { candles -> candles.moneyFlowIndex(24) }
             .map { it.lastOrNull() }
@@ -133,7 +128,7 @@ class BollingerBandTrendTradingMachine(
                 priceFlow[symbol]!!,
                 bbFlow[symbol]!!,
                 moneyFlowIndex[symbol]!!,
-                publicRealtimeClient.candlestickEventFlow["${symbol}_$MINUTE15"]!!.filterNot { it.isEmpty() }.map { it.last() }.filterNotNull(),
+                publicRealtimeClient.candlestickEventFlow["${symbol}_${properties.timePeriod}"]!!.filterNot { it.isEmpty() }.map { it.last() }.filterNotNull(),
             ) { price, bollingerBand, moneyFlowIndex, candle ->
 //                logger.info { "📈 [$symbol] price: $price, bollingerBand: $bollingerBand, width: ${bollingerBand.width}, moneyFlowIndex: $moneyFlowIndex" }
                 TickerIndicatorEvent(
@@ -211,7 +206,7 @@ class BollingerBandTrendTradingMachine(
                     )
                     bitgetFutureService.openLong(
                         symbol = event.symbol,
-                        size = (properties.entryAmount * properties.leverage / event.price).setScale(0),
+                        size = orderSize(event.symbol, event.price),
                         price = event.price,
                         presetStopLossPrice = event.candle.low
                     )
@@ -243,7 +238,7 @@ class BollingerBandTrendTradingMachine(
                     )
                     bitgetFutureService.openShort(
                         symbol = event.symbol,
-                        size = (BALANCE_USD.toBigDecimal() * LEVERAGE.toBigDecimal() / event.price).setScale(0),
+                        size = orderSize(event.symbol, event.price),
                         price = event.price,
                         presetStopLossPrice = event.candle.high
                     )
@@ -333,7 +328,7 @@ class BollingerBandTrendTradingMachine(
         suspend fun orderSize(symbol: String, price: BigDecimal): BigDecimal {
             val contractConfig = bitgetFutureService.getContractConfig(symbol)
             val sizeMultiplier = contractConfig.sizeMultiplier
-            val rawSize = BALANCE_USD.toBigDecimal().setScale(10) * LEVERAGE.toBigDecimal() / price
+            val rawSize = properties.entryAmount * properties.leverage / price
 
             // rawSize가 sizeMultiplier의 몇 배인지 계산 후, 그 배수에 맞춰 조정
             val multiplierCount = rawSize.divide(sizeMultiplier, 0, RoundingMode.DOWN)
