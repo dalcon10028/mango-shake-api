@@ -25,6 +25,17 @@ bitget:
   access-key: ${BITGET_ACCESS_KEY}
   secret-key: ${BITGET_SECRET_KEY}
 
+strategy:
+  bollinger-bands-trend:
+    entry-amount: 100
+    leverage: 5
+    time-period: 15m
+    universe:
+      - XRPUSDT
+      - DOGEUSDT
+      - ETHUSDT
+      - SOLUSDT
+
 logging:
   level:
     org.springframework.r2dbc.core: debug
