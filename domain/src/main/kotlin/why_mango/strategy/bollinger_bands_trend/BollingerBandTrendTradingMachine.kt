@@ -131,15 +131,17 @@ class BollingerBandTrendTradingMachine(
                 priceFlow[symbol]!!,
                 bbFlow[symbol]!!,
                 moneyFlowIndex[symbol]!!,
-                publicRealtimeClient.candlestickEventFlow["${symbol}_${properties.timePeriod}"]!!.filterNot { it.isEmpty() }.map { it.last() }.filterNotNull(),
-            ) { price, bollingerBand, moneyFlowIndex, candle ->
+                publicRealtimeClient.candlestickEventFlow["${symbol}_${properties.timePeriod}"]!!.filterNot { it.isEmpty() },
+            ) { price, bollingerBand, moneyFlowIndex, candles ->
 //                logger.info { "📈 [$symbol] price: $price, bollingerBand: $bollingerBand, width: ${bollingerBand.width}, moneyFlowIndex: $moneyFlowIndex" }
                 TickerIndicatorEvent(
                     symbol = symbol,
                     band = bollingerBand,
                     moneyFlowIndex = moneyFlowIndex,
                     price = price,
-                    candle = candle,
+                    maxOf3Candles = candles.takeLast(3).maxOf { it.high },
+                    minOf3Candles = candles.takeLast(3).minOf { it.low },
+                    lastCandle = candles.takeLast(2).first(),
                 )
             }
                 .onEach {
@@ -178,7 +180,7 @@ class BollingerBandTrendTradingMachine(
                 return state
             }
 
-            if (lastSignal != null && lastSignal?.candle?.timestamp == event.candle.timestamp) {
+            if (lastSignal != null && lastSignal?.lastCandle?.timestamp == event.lastCandle.timestamp) {
                 return state
             }
 
@@ -189,7 +191,7 @@ class BollingerBandTrendTradingMachine(
                         side = "long",
                         size = orderSize(event.symbol, event.price),
                         entryPrice = event.price,
-                        stopLossPrice = event.candle.low
+                        stopLossPrice = event.minOf3Candles
                     )
                     lastSignal = event
 
@@ -203,7 +205,8 @@ class BollingerBandTrendTradingMachine(
                                 Field("size", orderSize(event.symbol, event.price)),
                                 Field("band", event.band),
                                 Field("moneyFlowIndex", event.moneyFlowIndex),
-                                Field("candle15m", event.candle)
+                                Field("candle15m", event.lastCandle),
+                                Field("minOf3Candles", event.minOf3Candles),
                             )
                         )
                     )
@@ -211,7 +214,7 @@ class BollingerBandTrendTradingMachine(
                         symbol = event.symbol,
                         size = orderSize(event.symbol, event.price),
                         price = event.price,
-                        presetStopLossPrice = event.candle.low
+                        presetStopLossPrice = event.minOf3Candles
                     )
                     Holding
                 }
@@ -222,7 +225,7 @@ class BollingerBandTrendTradingMachine(
                         side = "short",
                         size = orderSize(event.symbol, event.price),
                         entryPrice = event.price,
-                        stopLossPrice = event.candle.high
+                        stopLossPrice = event.maxOf3Candles
                     )
                     lastSignal = event
                     publisher.publishEvent(
@@ -235,7 +238,8 @@ class BollingerBandTrendTradingMachine(
                                 Field("size", orderSize(event.symbol, event.price)),
                                 Field("band", event.band),
                                 Field("moneyFlowIndex", event.moneyFlowIndex),
-                                Field("candle15m", event.candle)
+                                Field("candle15m", event.lastCandle),
+                                Field("maxOf3Candles", event.maxOf3Candles),
                             )
                         )
                     )
@@ -243,7 +247,7 @@ class BollingerBandTrendTradingMachine(
                         symbol = event.symbol,
                         size = orderSize(event.symbol, event.price),
                         price = event.price,
-                        presetStopLossPrice = event.candle.high
+                        presetStopLossPrice = event.maxOf3Candles
                     )
                     Holding
                 }
@@ -308,14 +312,14 @@ class BollingerBandTrendTradingMachine(
                     return Waiting
                 }
                 // 이동평균선에 가격이 닿으면 포지션 종료
-                position?.side == "long" && event.candle.between(event.band.sma) -> {
+                position?.side == "long" && event.lastCandle.between(event.band.sma) -> {
                     val pnl = (event.price - position!!.entryPrice) * position!!.size
                     notify(pnl)
                     position = null
                     return Waiting
                 }
 
-                position?.side == "short" && event.candle.between(event.band.sma) -> {
+                position?.side == "short" && event.lastCandle.between(event.band.sma) -> {
                     val pnl = (position!!.entryPrice - event.price) * position!!.size
                     notify(pnl)
                     position = null
@@ -352,7 +356,9 @@ class BollingerBandTrendTradingMachine(
             val band: BollingerBand,
             val moneyFlowIndex: BigDecimal,
             val price: BigDecimal,
-            val candle: CandleStickPushEvent,
+            val minOf3Candles: BigDecimal,
+            val maxOf3Candles: BigDecimal,
+            val lastCandle: CandleStickPushEvent, // 마지막 완성 캔들
         ) {
             val isLong: Boolean get() = band.upper < price && moneyFlowIndex > "80".toBigDecimal()
             val isShort: Boolean get() = band.lower > price && moneyFlowIndex < "20".toBigDecimal()
