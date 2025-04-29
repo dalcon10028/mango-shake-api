@@ -70,15 +70,15 @@ class BearSquirrelTradingMachine(
 
     suspend fun subscribeTicker(symbol: String) {
         combine(priceFlow[symbol]!!, candleFLow[symbol]!!) { price, candles ->
-            logger.info {
-                """
-                     firstCandle: ${candles.dropLast(4).last().close},
-                     secondCandle: ${candles.dropLast(3).last().close},
-                     thirdCandle: ${candles.dropLast(2).last().close},
-                     forthCandle: ${candles.dropLast(1).last().close},
-                     currentCandle: ${candles.last().close}
-                    """.trimIndent()
-            }
+//            logger.info {
+//                """
+//                     firstCandle: ${candles.dropLast(4).last().close},
+//                     secondCandle: ${candles.dropLast(3).last().close},
+//                     thirdCandle: ${candles.dropLast(2).last().close},
+//                     forthCandle: ${candles.dropLast(1).last().close},
+//                     currentCandle: ${candles.last().close}
+//                    """.trimIndent()
+//            }
             TickerData(
                 symbol = symbol,
                 price = price,
