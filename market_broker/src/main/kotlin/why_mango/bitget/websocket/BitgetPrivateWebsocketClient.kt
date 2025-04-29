@@ -45,6 +45,7 @@ class BitgetPrivateWebsocketClient(
         "DOGEUSDT" to MutableSharedFlow(replay = 1),
         "ETHUSDT" to MutableSharedFlow(replay = 1),
         "SOLUSDT" to MutableSharedFlow(replay = 1),
+        "SUIUSDT" to MutableSharedFlow(replay = 1),
     )
     val positionHistoryChannel: Map<String, SharedFlow<HistoryPositionPushEvent>> = _positionHistoryChannel.mapValues { it.value.asSharedFlow() }
 

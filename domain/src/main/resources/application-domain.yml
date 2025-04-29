@@ -22,10 +22,14 @@ strategy:
     leverage: 5
     time-period: 15m
     universe:
-      - XRPUSDT
-      - DOGEUSDT
-      - ETHUSDT
-      - SOLUSDT
+
+  bear-squirrel:
+    entry-amount: 100
+    leverage: 5
+    time-period: 5m
+    universe:
+      - SUIUSDT
+
 
 logging:
   level:

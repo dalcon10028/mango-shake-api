@@ -7,5 +7,6 @@ data class Position(
     val side: String,
     val size: BigDecimal,
     val entryPrice: BigDecimal,
-    val stopLossPrice: BigDecimal,
+    val stopLoss: BigDecimal,
+    val takeProfit: BigDecimal? = null,
 )

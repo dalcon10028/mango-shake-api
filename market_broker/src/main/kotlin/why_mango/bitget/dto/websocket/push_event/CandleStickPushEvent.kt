@@ -1,6 +1,7 @@
 package why_mango.bitget.dto.websocket.push_event
 
 import java.math.BigDecimal
+import kotlin.math.min
 
 data class CandleStickPushEvent(
     /**
@@ -48,6 +49,25 @@ data class CandleStickPushEvent(
      * 캔들 고가 저가 사이에 가격이 있는지 확인
      */
     fun between(price: BigDecimal): Boolean = price in low..high
+
+    fun isBull(): Boolean = open < close
+
+    fun isBear(): Boolean = open > close
+
+    // 도지 여부 = 바디 길이 / 캔들 길이 < 0.2
+    fun isDoji() = body / length < BigDecimal("0.2")
+
+    val body: BigDecimal
+        get() = (close - open).abs()
+
+    val length: BigDecimal
+        get() = high - low
+
+    val lowerShadow: BigDecimal
+        get() = (minOf(open, close) - low).abs()
+
+    val upperShadow: BigDecimal
+        get() = (maxOf(open, close) - high).abs()
 
     companion object {
         fun from(data: List<String>): CandleStickPushEvent {

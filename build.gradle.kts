@@ -28,7 +28,7 @@ subprojects {
 
     dependencies {
         val kotestVersion by extra { "5.9.0" }
-        val kotlinSerializationVersion by extra { "1.7.1" }
+        val kotlinSerializationVersion by extra { "1.8.1" }
         val coroutinesVersion by extra { "1.9.0" }
         val mockkVersion by extra { "1.13.12" }
 

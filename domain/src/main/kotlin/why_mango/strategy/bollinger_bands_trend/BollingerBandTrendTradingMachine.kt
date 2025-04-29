@@ -15,9 +15,7 @@ import why_mango.bitget.BitgetFutureService
 import why_mango.bitget.dto.websocket.push_event.CandleStickPushEvent
 import why_mango.bitget.websocket.BitgetPrivateWebsocketClient
 import why_mango.strategy.bollinger_bands_trend.enums.TradingEvent
-import why_mango.strategy.bollinger_bands_trend.enums.TradingEvent.*
-import why_mango.strategy.bollinger_bands_trend.model.TradingState
-import why_mango.strategy.bollinger_bands_trend.model.*
+import why_mango.strategy.model.TradingState.*
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -36,7 +34,7 @@ class BollingerBandTrendTradingMachine(
     private val logger = KotlinLogging.logger {}
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private var _state: TradingState = Waiting
+    private var _state: TradingState = WAITING
     private var position: Position? = null
     private var lastSignal: TickerIndicatorEvent? = null
     private val stateMutex = Mutex()
@@ -147,10 +145,11 @@ class BollingerBandTrendTradingMachine(
                 .onEach {
                     stateMutex.withLock {
                         _state = when (state) {
-                            Waiting -> waiting(it)
-                            Requested -> TODO()
-                            Pause -> pause(it)
-                            Holding -> holding(it)
+                            WAITING -> waiting(it)
+                            REQUESTED -> TODO()
+                            PAUSE -> pause(it)
+                            HOLDING -> holding(it)
+                            ERROR -> TODO()
                         }
                     }
                 }
@@ -191,7 +190,7 @@ class BollingerBandTrendTradingMachine(
                         side = "long",
                         size = orderSize(event.symbol, event.price),
                         entryPrice = event.price,
-                        stopLossPrice = event.minOf3Candles
+                        stopLoss = event.minOf3Candles
                     )
                     lastSignal = event
 
@@ -216,7 +215,7 @@ class BollingerBandTrendTradingMachine(
                         price = event.price,
                         presetStopLossPrice = event.minOf3Candles
                     )
-                    Holding
+                    HOLDING
                 }
 
                 event.isShort -> {
@@ -225,7 +224,7 @@ class BollingerBandTrendTradingMachine(
                         side = "short",
                         size = orderSize(event.symbol, event.price),
                         entryPrice = event.price,
-                        stopLossPrice = event.maxOf3Candles
+                        stopLoss = event.maxOf3Candles
                     )
                     lastSignal = event
                     publisher.publishEvent(
@@ -249,7 +248,7 @@ class BollingerBandTrendTradingMachine(
                         price = event.price,
                         presetStopLossPrice = event.maxOf3Candles
                     )
-                    Holding
+                    HOLDING
                 }
 
                 else -> state
@@ -298,32 +297,32 @@ class BollingerBandTrendTradingMachine(
             }
 
             when {
-                position?.side == "long" && position!!.stopLossPrice > event.price -> {
+                position?.side == "long" && position!!.stopLoss > event.price -> {
                     val pnl = (event.price - position!!.entryPrice) * position!!.size
                     stopLossNotify(pnl)
                     position = null
-                    return Waiting
+                    return WAITING
                 }
 
-                position?.side == "short" && position!!.stopLossPrice < event.price -> {
+                position?.side == "short" && position!!.stopLoss < event.price -> {
                     val pnl = (position!!.entryPrice - event.price) * position!!.size
                     stopLossNotify(pnl)
                     position = null
-                    return Waiting
+                    return WAITING
                 }
                 // 이동평균선에 가격이 닿으면 포지션 종료
                 position?.side == "long" && event.lastCandle.between(event.band.sma) -> {
                     val pnl = (event.price - position!!.entryPrice) * position!!.size
                     notify(pnl)
                     position = null
-                    return Waiting
+                    return WAITING
                 }
 
                 position?.side == "short" && event.lastCandle.between(event.band.sma) -> {
                     val pnl = (position!!.entryPrice - event.price) * position!!.size
                     notify(pnl)
                     position = null
-                    return Waiting
+                    return WAITING
                 }
 
             }
