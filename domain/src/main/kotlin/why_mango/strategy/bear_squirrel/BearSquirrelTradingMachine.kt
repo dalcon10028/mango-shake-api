@@ -79,13 +79,23 @@ class BearSquirrelTradingMachine(
 //                     currentCandle: ${candles.last().close}
 //                    """.trimIndent()
 //            }
+
+            val conditions = listOf(
+                candles.isFirstCandleCondition(),
+                candles.isSecondCandleCondition(),
+                candles.isThirdCandleCondition(),
+                candles.isFourthCandleCondition(),
+            )
+
+            // 3개 이상 충족
+            if (conditions.count { it } >= 3) {
+                logger.info { "[$symbol] ${conditions.joinToString(",")}" }
+            }
+
             TickerData(
                 symbol = symbol,
                 price = price,
-                signal = candles.isFirstCandleCondition() &&
-                        candles.isSecondCandleCondition() &&
-                        candles.isThirdCandleCondition() &&
-                        candles.isFourthCandleCondition(),
+                signal = conditions.all { it },
                 stopLoss = candles.map { it.high }.takeLast(20).max()
             )
         }.onEach {
@@ -261,16 +271,24 @@ class BearSquirrelTradingMachine(
      * 30% ~ 70% 분위수 사이에 있으면 "적당한 크기"로 간주
      */
     private fun List<CandleStickPushEvent>.isFirstCandleCondition(): Boolean {
+        // 마지막 4개(신호 뒤따르는 캔들) 제외
         val candles = this.dropLast(4)
+        // 직전 캔들이 음봉이면 실패
         if (candles.last().isBear()) return false
-        return candles.windowed(50, 1)
-            .map { it.map { c -> (c.close - c.open).abs() }.sorted() }
-            .map { list ->
-                val lowerBound = list.size * 0.3
-                val upperBound = list.size * 0.7
-                list[lowerBound.toInt()] < ZERO && list[upperBound.toInt()] > ZERO
-            }
-            .last()
+
+        // 마지막 윈도우 결과 반환
+        return candles.windowed(size = 50, step = 1) { window ->
+            // 1) 각 캔들의 바디 길이(abs)를 리스트로
+            val lengths = window.map { (it.close - it.open).abs() }
+            // 2) 정렬해서 분위수 인덱스 계산
+            val sorted = lengths.sorted()
+            val lowIdx = (sorted.size * 0.3).toInt()
+            val highIdx = (sorted.size * 0.7).toInt()
+            // 3) 이 윈도우의 '현재' 바디 길이
+            val current = lengths.last()
+            // 4) 분위수 사이에 들어오는지 판별
+            current > sorted[lowIdx] && current < sorted[highIdx]
+        }.last()
     }
 
     /**
