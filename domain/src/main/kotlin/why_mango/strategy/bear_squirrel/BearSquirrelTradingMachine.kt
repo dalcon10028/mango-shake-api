@@ -245,7 +245,7 @@ class BearSquirrelTradingMachine(
         }
 
         return when {
-            position?.side == "short" && position!!.stopLoss > event.price -> {
+            position?.side == "short" && position!!.stopLoss < event.price -> {
                 val pnl = (position!!.entryPrice - event.price) * position!!.size
                 stopLossNotify(pnl)
                 position = null
