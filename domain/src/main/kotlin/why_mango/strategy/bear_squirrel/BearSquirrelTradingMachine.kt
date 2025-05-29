@@ -303,6 +303,11 @@ class BearSquirrelTradingMachine(
         val previousCandle = candles[candles.size - 2]
         val currentCandle = candles.last()
 
+        if (previousCandle.body <= ZERO || currentCandle.body <= ZERO) {
+            // 바디가 0 이하인 경우는 무시
+            return false
+        }
+
         // 덮은 비율 계산
         val coveredRatio = currentCandle.body / previousCandle.body
 
